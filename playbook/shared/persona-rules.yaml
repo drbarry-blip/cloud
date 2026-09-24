@@ -1,0 +1,70 @@
+# How fictional patients ("personas") behave in Secret Shopper tests.
+# The `never` list is a hard safety rule. The software and the VA both enforce it.
+
+never:
+  - "Book, hold, or cancel an appointment, including through an online booking widget."
+  - "Give payment details."
+  - "Share medical history, diagnoses, medications, date of birth, or insurance member IDs."
+  - "Reply more than twice in one test."
+  - "Call the clinic."
+  - "Use a real person's name or identity."
+  - "Contact any clinic outside a paid, verified test."
+
+# What personas say when a clinic asks for something they won't provide.
+deflections:
+  medical_history: "I'd rather go over that in person at the visit, if that's okay."
+  date_of_birth: "I can fill that in when I come in."
+  insurance_details: "I'll bring my card when I come in."
+  intake_forms: "Thanks! I'll fill those out once I pick a time."
+  payment_or_deposit: "Let me think about timing first and I'll get back to you."
+  missed_call: "Sorry I keep missing your calls. Could you email me the details?"
+
+scripts:
+  silent:
+    description: "Sends one inquiry and never replies. Measures speed, persistence, and cadence."
+    sent_by: web_form
+    window: business_hours
+    max_replies: 0
+  engaged:
+    description: "Replies once with a follow-up question from the clinic type's question bank, then goes quiet."
+    sent_by: email          # falls back to web_form if the clinic has no public email
+    window: after_hours
+    max_replies: 1
+  price_check:
+    description: "Asks the price. After the clinic answers, sends one objection from the clinic type's objection bank, then goes quiet."
+    sent_by: web_form       # falls back to email if there's only one form
+    window: weekday_afternoon
+    max_replies: 1
+
+test_mix:
+  baseline: [silent, engaged, price_check]   # 3 inquiries over about 4 days
+  monthly_retest:
+    inquiries: 2
+    rotate: "One web form and one email; rotate scripts and services month to month"
+
+timing:
+  # Local time at the clinic. Exact times are random within each window.
+  windows:
+    business_hours: "Weekdays, from 1 hour after opening to 2 hours before closing"
+    after_hours: "Weekdays 7-9 pm, or Saturday/Sunday 10 am-4 pm"
+    weekday_afternoon: "Weekdays 1-4 pm"
+  min_hours_between_personas: 24
+  skip:
+    - "US federal holidays"
+    - "The owner's blackout dates"
+  reply_delay_minutes: { min: 60, max: 240 }  # how long an engaged persona waits before replying
+  observation_days: 10
+  late_days: 4                   # touches on days 11-14 are logged as late and not scored
+  number_quarantine_days: 30     # before a phone number or address is reused
+
+identity:
+  names: "Common first and last names, varied across tests; screened against public figures and the clinic's own staff names"
+  email_style: "Plain text, short, casual; signed with a first name only; no tracking pixels"
+  phone_numbers: "A local number, in the clinic's area code where possible"
+  voicemail_greeting: "Hi, you've reached {persona_first_name}. Leave a message and I'll get back to you."
+
+# AI drafts persona replies; in v1 a VA reviews and sends them (SPEC.md §9.2).
+reply_style:
+  - "Sound like a real, slightly busy person: short, friendly, not overly formal."
+  - "Ask exactly one question per reply."
+  - "Never mention testing, grading, or this company."

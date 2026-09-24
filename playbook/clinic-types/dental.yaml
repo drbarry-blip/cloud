@@ -1,0 +1,82 @@
+# Clinic type: dental
+# TODO(owner): review services, messages, questions, and objections; fill in market_notes.
+
+id: dental
+name: "Dental"
+
+services:
+  - id: new_patient_exam
+    name: "New-patient exam and cleaning"
+    sensitive: false
+    price_factor: "your insurance and whether X-rays are needed"
+    smaller_option: "our new-patient special"
+  - id: emergency_visit
+    name: "Emergency visit"
+    sensitive: false
+    price_factor: "what the dentist finds at the exam"
+    smaller_option: "a limited emergency exam first"
+  - id: clear_aligners
+    name: "Clear aligners"
+    sensitive: false
+    price_factor: "how much movement your teeth need"
+    smaller_option: "a free or low-cost aligner consult first"
+  - id: implants
+    name: "Dental implants"
+    sensitive: false
+    price_factor: "how many teeth and whether bone grafting is needed"
+    smaller_option: "financing, or a consult with a written estimate first"
+
+persona_inquiries:
+  - { service: new_patient_exam, script: silent, message: "Hi, I just moved to the area and I'm looking for a new dentist. How soon could I get in for a cleaning and exam?" }
+  - { service: new_patient_exam, script: engaged, message: "Hello, are you accepting new patients? I'd like to schedule a cleaning. Do you take Delta Dental PPO?" }
+  - { service: emergency_visit, script: silent, message: "Hi, I have a toothache that's getting worse. Do you have any same-day or next-day openings for new patients?" }
+  - { service: implants, script: price_check, message: "Hi, I'm looking into a dental implant and wanted a rough idea of the cost. Do you offer payment plans?" }
+  - { service: clear_aligners, script: price_check, message: "Hi! How much does clear aligner treatment usually cost at your office? Is the consult free?" }
+
+follow_up_questions:
+  - "Do you take my insurance, or can you check it for me?"
+  - "Do you have a new-patient special?"
+  - "Do you have early-morning or Saturday appointments?"
+  - "Do you offer payment plans or financing?"
+  - "How long is the first visit?"
+
+price_objections:
+  - "That's more than I expected. Is there any way to bring it down?"
+  - "Another office quoted me less."
+  - "Do you have financing with low monthly payments?"
+
+competitor_search_terms: ["dentist", "cosmetic dentist", "dental implants", "emergency dentist"]
+
+target_patients:
+  description: "All ages; implants and cosmetic work skew 45+ and higher income"
+  age_min: 0
+  age_max: null
+  sex: any
+  income_emphasis: mixed
+
+supply_data:
+  naics: ["621210"]             # Offices of Dentists
+  nppes: ["dentists"]
+
+reply_checker_terms: ["filling", "crown", "root canal", "extraction", "implant", "cleaning", "x-ray", "x-rays", "cavity", "cavities", "invisalign", "aligners", "braces", "whitening", "veneers", "gums", "periodontal", "deep cleaning", "sedation", "numbing", "tooth", "teeth", "wisdom teeth"]
+
+copy_watch_outs:
+  - "No 'painless' promises."
+  - "Many state dental boards restrict 'specialist' claims for general dentists."
+  - "Avoid unsupported superlatives ('best dentist in town')."
+  - "Before/after photos need written patient consent."
+
+fix_it_notes:
+  - "Offer to check insurance for the patient. It removes the biggest reason they stall."
+  - "Always offer the soonest opening for emergencies, same day if at all possible."
+  - "Lead with a new-patient special if you have one."
+
+attorney_questions:
+  - "What do our state dental board's advertising rules say about specialty claims, prices, and 'free' offers?"
+  - "Are there rules on who may own a dental practice in our state?"
+
+market_notes:                   # TODO(owner): your insider rules of thumb. Leave blank rather than guess.
+  rules_of_thumb: []
+  prompts_for_owner:
+    - "How many residents per dentist makes a market attractive?"
+    - "How much does insurance mix (PPO vs. fee-for-service) change a location's appeal?"

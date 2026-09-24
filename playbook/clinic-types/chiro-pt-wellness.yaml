@@ -1,0 +1,77 @@
+# Clinic type: chiropractic / physical therapy / wellness (including IV therapy)
+# TODO(owner): review services, messages, questions, and objections; fill in market_notes.
+
+id: chiro_pt_wellness
+name: "Chiro / PT / wellness"
+
+services:
+  - id: chiro_new_patient
+    name: "Chiropractic new-patient visit"
+    sensitive: false
+    price_factor: "whether X-rays are needed and your insurance"
+    smaller_option: "our new-patient special"
+  - id: pt_evaluation
+    name: "Physical therapy evaluation"
+    sensitive: false
+    price_factor: "your insurance and the plan your therapist recommends"
+    smaller_option: "a single evaluation visit first"
+  - id: iv_hydration
+    name: "IV hydration / vitamin drips"
+    sensitive: false
+    price_factor: "which drip you choose"
+    smaller_option: "a basic hydration drip or a membership"
+
+persona_inquiries:
+  - { service: chiro_new_patient, script: silent, message: "Hi, are you taking new patients? I'd like to come in for an adjustment. How soon could I get in?" }
+  - { service: chiro_new_patient, script: price_check, message: "Hi, what does a first visit cost without insurance?" }
+  - { service: pt_evaluation, script: engaged, message: "Hi, I'm looking for physical therapy for a sore knee from running. Do I need a referral, and do you take Blue Cross?" }
+  - { service: iv_hydration, script: silent, message: "Hi! What IV drips do you offer, and can I book something for this weekend?" }
+  - { service: iv_hydration, script: price_check, message: "Hey, how much are your IV drips? Do you have a menu?" }
+
+follow_up_questions:
+  - "Do you take my insurance?"
+  - "How long is the first visit?"
+  - "Do you have early-morning or evening appointments?"
+  - "Do I need a referral from my doctor?"
+  - "Do you have packages or memberships?"
+
+price_objections:
+  - "That's more than I expected for one visit."
+  - "Is there a package that brings the cost down?"
+  - "Another place near me is cheaper. What's different about yours?"
+
+competitor_search_terms: ["chiropractor", "physical therapy", "IV therapy"]
+
+target_patients:
+  description: "Adults 25-64; active, working population"
+  age_min: 25
+  age_max: 64
+  sex: any
+  income_emphasis: mixed
+
+supply_data:
+  naics: ["621310", "621340"]   # Offices of Chiropractors; Offices of Physical, Occupational & Speech Therapists
+  nppes: ["chiropractors", "physical therapists"]
+
+reply_checker_terms: ["adjustment", "adjustments", "spine", "back pain", "neck pain", "sciatica", "x-ray", "x-rays", "physical therapy", "therapy", "exercises", "injury", "knee", "shoulder", "hip", "iv", "drip", "drips", "hydration", "infusion", "vitamin", "nad+", "myers"]
+
+copy_watch_outs:
+  - "IV therapy: no 'boosts immunity', 'detox', or cure claims. The FTC has acted on these."
+  - "Chiropractic: no claims to treat conditions outside musculoskeletal care."
+  - "No 'guaranteed pain-free' promises."
+
+fix_it_notes:
+  - "Say clearly whether a referral is needed. In many states patients can see a PT directly for some period."
+  - "Post an IV menu with prices and link it in the first reply."
+  - "Offer the first available time slot in every reply. Patients in pain book fast."
+
+attorney_questions:
+  - "Who may administer IV therapy in our state, and what supervision is required?"
+  - "What are our state's direct-access rules for physical therapy?"
+  - "What is the chiropractic scope of practice for advertising purposes in our state?"
+
+market_notes:                   # TODO(owner): your insider rules of thumb. Leave blank rather than guess.
+  rules_of_thumb: []
+  prompts_for_owner:
+    - "Which of chiro, PT, or IV is most attractive for a new clinic right now?"
+    - "What trade-area size works for cash-pay IV versus insurance-based PT?"

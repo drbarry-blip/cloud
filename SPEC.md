@@ -581,7 +581,7 @@ flowchart LR
 
 ```
 SPEC.md
-playbook/        your know-how, one folder per clinic type (YAML/Markdown, versioned)
+playbook/        your know-how: shared rules + one file per clinic type (YAML, versioned)
 prompts/         versioned AI prompts
 evals/           test sets for grading, reply checking, and form filling
 apps/web/        Next.js: site, free tools, checkout, dashboard, admin/VA console

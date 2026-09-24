@@ -1,0 +1,44 @@
+# What "good" looks like when a new patient reaches out.
+# Used to grade Secret Shopper tests and to write each report's fix-it kit.
+# A clinic-type file can override any value here under `response_standards:`.
+
+speed_targets:
+  business_hours:
+    first_human_response_minutes: 5     # TODO(owner): your standard. 5 minutes is the common speed-to-lead rule of thumb.
+    acceptable_minutes: 60              # beyond this, the report calls speed a problem
+  after_hours:
+    instant_auto_reply: true            # an automatic reply within about a minute, ideally with a booking link
+    first_human_response_minutes_after_opening: 30   # TODO(owner)
+
+follow_up:
+  window_days: 10                       # how long a clinic should keep trying before giving up
+  minimum_human_touches: 5              # TODO(owner): calls, texts, and emails from a person (not automations)
+  minimum_distinct_days: 3
+  minimum_channels: 2                   # e.g., phone + email
+  stop_when:
+    - "The patient books"
+    - "The patient asks to stop"
+    - "The follow-up window ends"
+
+channels:
+  first_touch: phone                    # call first; if no answer, leave a voicemail and follow with a text or email
+  reply_on_patient_channel: true        # answer on the channel the patient used, and offer the others
+  text_only_with_consent: true          # text only leads who agreed to texts (e.g., a checkbox on the web form)
+
+conversation:
+  always:
+    - "Use the patient's first name and answer the question they actually asked."
+    - "Offer two specific appointment times or a direct booking link."
+    - "When asked about price, give a price or range, or explain what it depends on and when they'll know."
+    - "End every message with one clear next step."
+  never:
+    - "Ask for medical history, insurance card photos, or ID by plain email or text."
+    - "Promise results or use pressure (for example, 'this price is only good today')."
+    - "Leave a voicemail without a callback number."
+    - "Mention a sensitive service or health details in a voicemail or text (see the clinic-type files)."
+
+privacy_in_messages:
+  # Voicemails and texts can be heard or seen by other people.
+  # Services marked `sensitive: true` in a clinic-type file get generic wording
+  # ("your consultation request") instead of naming the service.
+  generic_wording_for_sensitive_services: true

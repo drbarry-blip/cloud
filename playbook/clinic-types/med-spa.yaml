@@ -1,0 +1,89 @@
+# Clinic type: med spa / aesthetics
+# TODO(owner): review services, messages, questions, and objections; fill in market_notes.
+
+id: med_spa
+name: "Med spa / aesthetics"
+
+services:
+  # sensitive: true -> voicemails and texts say "your consultation request" instead of the service name
+  - id: neurotoxin
+    name: "Botox / neurotoxin"
+    sensitive: false
+    price_factor: "how many areas and units you need"
+    smaller_option: "starting with one area"
+  - id: filler
+    name: "Dermal filler"
+    sensitive: false
+    price_factor: "the area and how many syringes you need"
+    smaller_option: "starting with a half syringe or a single area"
+  - id: laser_hair_removal
+    name: "Laser hair removal"
+    sensitive: false
+    price_factor: "the area size and number of sessions"
+    smaller_option: "a package for a small area first"
+  - id: skin_treatment
+    name: "Facials, peels, and microneedling"
+    sensitive: false
+    price_factor: "the treatment and whether you choose a series"
+    smaller_option: "a single session before committing to a series"
+
+# Opening messages. Written casually on purpose, with no medical history.
+persona_inquiries:
+  - { service: neurotoxin, script: silent, message: "Hi! I've never had Botox before and I'm thinking about trying it. How much is it, and do you have anything open next week?" }
+  - { service: neurotoxin, script: price_check, message: "Hi, how much do you charge for Botox? Just trying to compare a few places nearby." }
+  - { service: filler, script: engaged, message: "Hi there, I'm interested in lip filler and wanted to know what a first appointment looks like. Do you do consultations first?" }
+  - { service: laser_hair_removal, script: silent, message: "Hello, I'm looking into laser hair removal. Do you have package pricing, and when is your next availability?" }
+  - { service: laser_hair_removal, script: price_check, message: "Hi, what's the price for laser hair removal on the underarms? Is it per session or a package?" }
+  - { service: skin_treatment, script: engaged, message: "Hi! I'd like to try a facial or microneedling but I'm not sure which is right for me. Can someone help me pick?" }
+
+follow_up_questions:            # the Engaged persona asks one of these
+  - "Is the consultation free?"
+  - "How long does the appointment take?"
+  - "Is there any downtime afterward?"
+  - "Do you have evening or weekend appointments?"
+  - "Who does the treatments: a nurse, a PA, or a doctor?"
+  - "Do you offer any first-visit specials?"
+
+price_objections:               # the Price-check persona says one of these after hearing the price
+  - "Hmm, that's a bit more than I expected."
+  - "Another place near me quoted less. Why the difference?"
+  - "Do you have a payment plan or membership?"
+
+competitor_search_terms: ["med spa", "medical spa", "botox", "laser hair removal"]
+
+target_patients:                # Location Report defaults; editable per report
+  description: "Women 25-64, higher household income"
+  age_min: 25
+  age_max: 64
+  sex: female
+  income_emphasis: high
+
+supply_data:
+  note: "Industry counts are unreliable for med spas, since they're classified inconsistently. Rely on Google results."
+  naics: []
+  nppes: []
+
+reply_checker_terms: ["botox", "dysport", "xeomin", "neurotoxin", "filler", "lip filler", "syringe", "units", "laser", "hair removal", "microneedling", "peel", "facial", "bruising", "swelling", "lips", "forehead", "crow's feet", "injection", "injector"]
+
+copy_watch_outs:
+  - "No 'permanent' or 'no downtime' promises."
+  - "Before/after photos need written patient consent."
+  - "Don't call every neurotoxin 'Botox'; Botox is a brand name."
+  - "Testimonials must reflect typical results (FTC endorsement rules)."
+
+fix_it_notes:
+  - "Offer a free or credited consultation, and say so in the first reply."
+  - "Mention memberships or payment options before the patient has to ask."
+  - "Evening and weekend openings win many med spa bookings; lead with them if you have them."
+
+attorney_questions:
+  - "In our state, who may own a med spa, and who must supervise injectables?"
+  - "What exam is required before a nurse or PA can inject, and who must perform it?"
+  - "Are there rules on advertising brand-name products and prices?"
+
+market_notes:                   # TODO(owner): your insider rules of thumb. Leave blank rather than guess.
+  rules_of_thumb: []
+  prompts_for_owner:
+    - "How many target residents does one med spa need to do well?"
+    - "Which competitor weaknesses are easiest to beat (reviews, booking, pricing)?"
+    - "What pricing stance works best when entering a crowded market?"

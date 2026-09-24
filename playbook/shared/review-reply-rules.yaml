@@ -1,0 +1,104 @@
+# What the HIPAA-Safe Review Reply Checker flags, and its safe templates.
+# Clinic-type files add their own terms (procedures, drugs) under `reply_checker_terms`.
+# This is a safety net, not legal advice.
+
+core_rule: >
+  Never confirm or deny that the reviewer is a patient. "We have no record of you" is also a disclosure.
+  Keep every reply general and move the conversation offline.
+
+categories:
+  confirms_patient:
+    severity: unsafe
+    explain: "Confirms the reviewer is (or was) a patient."
+    phrases:
+      - "when you came in"
+      - "when you visited"
+      - "your visit"
+      - "your appointment"
+      - "your last visit"
+      - "your treatment"
+      - "your procedure"
+      - "your follow-up"
+      - "your chart"
+      - "our records"
+      - "per our notes"
+      - "as your provider"
+      - "as your doctor"
+      - "we saw you"
+      - "you were seen"
+      - "our patient"
+      - "no record of you"
+  treatment_details:
+    severity: unsafe
+    explain: "Mentions a treatment, drug, result, side effect, or condition tied to the reviewer."
+    phrases:
+      - "your results"
+      - "your prescription"
+      - "your dose"
+      - "your labs"
+      - "your diagnosis"
+      - "your condition"
+      - "side effect"
+    uses_clinic_type_terms: true    # combined with each clinic type's reply_checker_terms
+  identifiers:
+    severity: unsafe_or_caution
+    explain: "Names, dates, times, or which staff member was involved."
+    detect: ["person names (caution; unsafe with any other flag)", "dates", "times of day", "staff names"]
+  billing_insurance:
+    severity: unsafe
+    explain: "Mentions balances, claims, or coverage."
+    phrases:
+      - "your bill"
+      - "your balance"
+      - "your insurance"
+      - "your claim"
+      - "your copay"
+      - "sent to collections"
+  arguing_care:
+    severity: unsafe
+    explain: "Disputes what happened in their care."
+    phrases:
+      - "you were told"
+      - "you were informed"
+      - "you signed"
+      - "you consented"
+      - "you agreed to"
+  tone:
+    severity: caution
+    explain: "Defensive, sarcastic, or blaming. Not a privacy issue, but it hurts trust."
+  no_private_path:
+    severity: caution
+    explain: "Doesn't invite the reviewer to contact the office directly."
+
+verdicts:
+  safe: "No flags."
+  needs_changes: "Only caution flags."
+  unsafe: "Any unsafe flag, or a name alongside any other flag."
+
+# Vetted fallbacks. If an AI rewrite still trips a rule, the checker uses one of these.
+# {phone} and {role} come from what the owner enters (e.g., "our office manager").
+safe_templates:
+  negative_general: >
+    Thank you for sharing this. We take all feedback seriously and want everyone to have a good experience with us.
+    To protect everyone's privacy, we don't discuss details online. Please call {role} at {phone} so we can talk directly.
+  negative_wait_time: >
+    Thank you for the feedback. We know everyone's time is valuable, and we're always working to keep our schedule on track.
+    We'd welcome the chance to talk. Please call {role} at {phone}.
+  negative_price: >
+    Thank you for sharing your thoughts. We aim to be clear about costs up front. If you'd like to talk it through,
+    please call {role} at {phone}. We're happy to help.
+  negative_outcome_or_staff: >
+    We're sorry to read this. We hold ourselves to a high standard and take this kind of feedback seriously.
+    Because we protect everyone's privacy, we can't discuss specifics here. Please call {role} at {phone} so we can listen and help.
+  positive_general: >
+    Thank you so much for the kind words! Our team works hard to make everyone feel welcome,
+    and we truly appreciate you taking the time to share.
+  mixed_or_neutral: >
+    Thank you for taking the time to share this. We're glad to hear what went well and are always looking for ways to improve.
+    If you'd like to share more, please call {role} at {phone}.
+
+rewrite_rules:
+  - "Never mention a visit, treatment, result, date, staff member, or the reviewer's name."
+  - "Thank them, show you take feedback seriously, and move the conversation offline."
+  - "Keep it under 60 words, warm, and not defensive."
+  - "Offer three versions: short and warm; service recovery with an offline contact; and, for positive reviews, grateful without confirming anything."
