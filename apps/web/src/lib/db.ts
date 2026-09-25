@@ -110,14 +110,26 @@ export async function migrate(db: Db, dir = migrationsDir()): Promise<string[]> 
   return ran;
 }
 
-/** A fresh in-process database with all migrations applied (tests and local development). */
-export async function createLiteDb(dataDir?: string): Promise<Db> {
+async function openLite(dataDir?: string): Promise<{ lite: PGliteLike & { clone(): Promise<unknown> }; db: Db }> {
   const { PGlite } = await import("@electric-sql/pglite");
   const lite = new PGlite(dataDir);
   await lite.waitReady;
   const db = new LiteDb(lite as unknown as PGliteLike);
   await migrate(db);
-  return db;
+  return { lite: lite as unknown as PGliteLike & { clone(): Promise<unknown> }, db };
+}
+
+let template: ReturnType<typeof openLite> | undefined;
+
+/**
+ * A fresh in-process database with all migrations applied (tests and local development).
+ * In-memory databases are cloned from one migrated template, which is much faster.
+ */
+export async function createLiteDb(dataDir?: string): Promise<Db> {
+  if (dataDir) return (await openLite(dataDir)).db;
+  template ??= openLite();
+  const copy = await (await template).lite.clone();
+  return new LiteDb(copy as PGliteLike);
 }
 
 let dbPromise: Promise<Db> | undefined;

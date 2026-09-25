@@ -15,6 +15,9 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["test/**/*.test.ts"],
+    // The first in-process database in each file is built and migrated from scratch,
+    // which can take several seconds on a busy CI runner.
+    testTimeout: 30_000,
     env: { PLAYBOOK_DIR: path.join(here, "../../playbook") },
   },
 });

@@ -61,7 +61,7 @@ export const config = {
   },
   databaseUrl: () => {
     const v = env("DATABASE_URL");
-    if (!v) warnOnce("db", "DATABASE_URL is not set; using in-memory storage (data is lost on restart).");
+    if (!v) warnOnce("db", "DATABASE_URL is not set; using the embedded PGlite database (set PGLITE_DIR to keep data between restarts).");
     return v;
   },
   email: () => {
