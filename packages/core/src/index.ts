@@ -5,3 +5,5 @@ export type { Playbook } from "./playbook/load";
 export * from "./reply-checker/check";
 export * from "./reply-checker/templates";
 export * from "./visibility/score";
+export * from "./playbook/shopper-schema";
+export * from "./shopper";

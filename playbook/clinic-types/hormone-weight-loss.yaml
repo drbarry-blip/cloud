@@ -10,11 +10,13 @@ services:
   - id: trt
     name: "Testosterone replacement therapy (TRT)"
     sensitive: true
+    persona_sex: male
     price_factor: "your lab results and the treatment plan your provider recommends"
     smaller_option: "starting with just the consult and labs"
   - id: menopause_hormone_therapy
     name: "Menopause / perimenopause hormone therapy"
     sensitive: true
+    persona_sex: female
     price_factor: "your labs and the plan your provider recommends"
     smaller_option: "starting with just the consult and labs"
   - id: medical_weight_loss

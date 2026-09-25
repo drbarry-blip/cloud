@@ -3,6 +3,16 @@ import path from "node:path";
 import { parse } from "yaml";
 import type { z } from "zod";
 import {
+  FixItScriptsSchema,
+  PersonaRulesSchema,
+  ResponseStandardsSchema,
+  RubricSchema,
+  type FixItScripts,
+  type PersonaRules,
+  type ResponseStandards,
+  type Rubric,
+} from "./shopper-schema";
+import {
   ClinicTypeSchema,
   LooseSchema,
   ManifestSchema,
@@ -19,11 +29,11 @@ export interface Playbook {
   visibilityScore: VisibilityScoreRules;
   reviewReplyRules: ReviewReplyRules;
   clinicTypes: Record<string, ClinicType>;
-  // Loaded for later phases; validated only as YAML objects for now.
-  responseStandards: Record<string, unknown>;
-  secretShopperRubric: Record<string, unknown>;
-  personaRules: Record<string, unknown>;
-  fixItScripts: Record<string, unknown>;
+  responseStandards: ResponseStandards;
+  secretShopperRubric: Rubric;
+  personaRules: PersonaRules;
+  fixItScripts: FixItScripts;
+  // Loaded for a later phase; validated only as a YAML object for now.
   locationReport: Record<string, unknown>;
 }
 
@@ -66,16 +76,31 @@ export function loadPlaybook(dir: string): Playbook {
     }
     clinicTypes[key] = clinicType;
   }
+  const personaRules = readYaml(dir, manifest.shared.persona_rules, PersonaRulesSchema);
+  for (const [script, def] of Object.entries(personaRules.scripts)) {
+    if (!personaRules.timing.windows[def.window]) {
+      throw new PlaybookError(`${manifest.shared.persona_rules}: script "${script}" uses unknown window "${def.window}"`);
+    }
+  }
+  const rubric = readYaml(dir, manifest.shared.secret_shopper_rubric, RubricSchema);
+  const parts = rubric.parts;
+  for (const part of [parts.conversation_quality, parts.reachability]) {
+    const sum = part.criteria.reduce((a, c) => a + c.points, 0);
+    if (sum !== part.max_points) {
+      throw new PlaybookError(`${manifest.shared.secret_shopper_rubric}: criteria add up to ${sum}, but max_points is ${part.max_points}`);
+    }
+  }
+
   return {
     version: manifest.version,
     status: manifest.status,
     visibilityScore: readYaml(dir, manifest.shared.visibility_score, VisibilityScoreSchema),
     reviewReplyRules: readYaml(dir, manifest.shared.review_reply_rules, ReviewReplyRulesSchema),
     clinicTypes,
-    responseStandards: readYaml(dir, manifest.shared.response_standards, LooseSchema),
-    secretShopperRubric: readYaml(dir, manifest.shared.secret_shopper_rubric, LooseSchema),
-    personaRules: readYaml(dir, manifest.shared.persona_rules, LooseSchema),
-    fixItScripts: readYaml(dir, manifest.shared.fix_it_scripts, LooseSchema),
+    responseStandards: readYaml(dir, manifest.shared.response_standards, ResponseStandardsSchema),
+    secretShopperRubric: rubric,
+    personaRules,
+    fixItScripts: readYaml(dir, manifest.shared.fix_it_scripts, FixItScriptsSchema),
     locationReport: readYaml(dir, manifest.shared.location_report, LooseSchema),
   };
 }

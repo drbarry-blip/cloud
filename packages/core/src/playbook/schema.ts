@@ -127,6 +127,7 @@ export const ClinicTypeSchema = z.object({
         id: z.string(),
         name: z.string(),
         sensitive: z.boolean(),
+        persona_sex: z.enum(["male", "female", "any"]).default("any"),
         price_factor: z.string(),
         smaller_option: z.string(),
       }),

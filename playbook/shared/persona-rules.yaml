@@ -44,10 +44,26 @@ test_mix:
 
 timing:
   # Local time at the clinic. Exact times are random within each window.
+  # Times are "HH:MM", or relative to that day's hours: "open+60" = an hour after opening,
+  # "close-120" = two hours before closing. `clinic` says whether the clinic must be open
+  # or closed at the chosen time.
   windows:
-    business_hours: "Weekdays, from 1 hour after opening to 2 hours before closing"
-    after_hours: "Weekdays 7-9 pm, or Saturday/Sunday 10 am-4 pm"
-    weekday_afternoon: "Weekdays 1-4 pm"
+    business_hours:
+      label: "Weekdays, from 1 hour after opening to 2 hours before closing"
+      clinic: open
+      slots:
+        - { days: [mon, tue, wed, thu, fri], from: "open+60", to: "close-120" }
+    after_hours:
+      label: "Weekdays 7-9 pm, or Saturday/Sunday 10 am-4 pm, while the clinic is closed"
+      clinic: closed
+      slots:
+        - { days: [mon, tue, wed, thu, fri], from: "19:00", to: "21:00" }
+        - { days: [sat, sun], from: "10:00", to: "16:00" }
+    weekday_afternoon:
+      label: "Weekdays 1-4 pm, while the clinic is open"
+      clinic: open
+      slots:
+        - { days: [mon, tue, wed, thu, fri], from: "13:00", to: "16:00" }
   min_hours_between_personas: 24
   skip:
     - "US federal holidays"
