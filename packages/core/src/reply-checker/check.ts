@@ -6,7 +6,7 @@ export type Verdict = "safe" | "needs_changes" | "unsafe";
 export interface ReplyFlag {
   category: string;
   severity: FlagSeverity;
-  /** The exact text from the reply that triggered the flag. */
+  /** The exact text from the reply that triggered the flag; empty when the flag is about something missing. */
   match: string;
   start: number;
   end: number;
@@ -142,10 +142,10 @@ export function checkReplyRules(
   }
   for (const hit of findAll(reply, TIMES)) add("identifiers", "unsafe", hit, "Mentions a time, which can place the reviewer at the clinic.");
 
-  // 4. Negative-sounding reply with no way to take the conversation offline.
-  const apology = APOLOGY.exec(reply);
-  if (apology && !CONTACT_PATH.test(reply) && rules.categories.no_private_path) {
-    add("no_private_path", "caution", { match: apology[0], start: apology.index, end: apology.index + apology[0].length }, explain(rules, "no_private_path", "Doesn't invite the reviewer to contact the office directly."));
+  // 4. Negative-sounding reply with no way to take the conversation offline. This flags
+  // something missing, so it has no text span (match is empty; nothing is highlighted).
+  if (APOLOGY.test(reply) && !CONTACT_PATH.test(reply) && rules.categories.no_private_path) {
+    add("no_private_path", "caution", { match: "", start: 0, end: 0 }, explain(rules, "no_private_path", "Doesn't invite the reviewer to contact the office directly."));
   }
 
   return finalize(dedupe(flags));
