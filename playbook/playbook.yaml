@@ -5,7 +5,7 @@
 version: "0.2.0-draft"
 status: draft            # draft | approved  (set to approved once you've reviewed it)
 last_updated: "2026-09-25"
-written_by: "Claude (draft from common industry practice); owner decisions applied for speed, after-hours, persistence, and script voice"
+written_by: "Claude (draft from common industry practice); owner decisions applied for speed, after-hours, persistence, script voice, score weights, price grading, cadence, and hormone services"
 
 shared:
   response_standards: shared/response-standards.yaml

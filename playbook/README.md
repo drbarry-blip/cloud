@@ -31,7 +31,7 @@ In order of impact:
 
 1. ~~**Speed and follow-up standards**~~ **Done (2026-09-25):** full marks for a human reply within 1 hour; after hours, an instant auto-reply plus a person within 1 hour of opening; 5+ attempts over 10 days.
 2. **Fix-it scripts** (`shared/fix-it-scripts.yaml`): the voice is set (warm and friendly). Edit any wording that doesn't sound like your best front-desk person. This is what customers copy.
-3. **Rubric weights and examples** (`shared/secret-shopper-rubric.yaml`): do the points match what actually turns inquiries into patients?
+3. **Rubric examples** (`shared/secret-shopper-rubric.yaml`): the weights (35/25/30/10), price grading, and ~10-touch schedule are confirmed (2026-09-25). Check that the good and bad examples match your judgment.
 4. **Fictional-patient messages** (`clinic-types/*.yaml` → `persona_inquiries`): do they sound like real patients in each clinic type?
 5. **Objections and questions** (`clinic-types/*.yaml`): add the ones your front desk hears most.
 6. **Market notes** (`clinic-types/*.yaml` → `market_notes`): your rules of thumb for the Location Report. Everything there is blank on purpose; the spec forbids invented statistics.

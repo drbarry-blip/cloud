@@ -1,6 +1,7 @@
 # Clinic type: hormone & weight loss (TRT, menopause hormone therapy, medical weight loss)
 # Every service here is marked sensitive: voicemails and texts stay generic.
-# TODO(owner): this is likely closest to your own expertise. Review it first.
+# Services confirmed by owner (2026-09-25): TRT, menopause hormone therapy, medical weight loss.
+# TODO(owner): review the messages, questions, objections, and market_notes; this is likely closest to your expertise.
 
 id: hormone_weight_loss
 name: "Hormone & weight loss"

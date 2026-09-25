@@ -58,7 +58,7 @@ final_email: |
   {staff_name}, {clinic_name}
 
 # The 10-day follow-up cadence recommended in every report.
-# TODO(owner): tune it to what your front desk can realistically keep up with.
+# Owner confirmed (2026-09-25): keep the full ~10-touch schedule.
 cadence:
   - { day: 0, when: "Within 1 hour (sooner is better)", actions: ["call", "voicemail if no answer", "text (with consent)", "first email"] }
   - { day: 0, when: "2-3 hours later",  actions: ["call"] }
