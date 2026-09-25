@@ -83,7 +83,7 @@ export const config = {
     const secretKey = env("STRIPE_SECRET_KEY");
     const webhookSecret = env("STRIPE_WEBHOOK_SECRET");
     if (!secretKey || !webhookSecret) {
-      warnOnce("stripe", "Stripe is not configured (STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET); checkout is simulated in development.");
+      warnOnce("stripe", "Stripe is not configured (STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET); checkout is simulated in development and unavailable in production.");
       return null;
     }
     return { secretKey, webhookSecret };
@@ -116,6 +116,8 @@ export const config = {
     }
     return { accountSid, authToken };
   },
+  /** The test clinic (SPEC.md §10.8): where its form submissions go, and its listed phone. */
+  testClinic: () => ({ email: env("TEST_CLINIC_EMAIL") ?? null, phone: env("TEST_CLINIC_PHONE") ?? null }),
   /** Shared secret that signs inbound email posted by the email worker. */
   inboundEmailSecret: () => env("INBOUND_EMAIL_SECRET"),
   /** A remote browser (CDP websocket) or a local Chromium, for submitting web forms. */

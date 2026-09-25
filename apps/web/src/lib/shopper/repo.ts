@@ -808,6 +808,32 @@ export class ShopperRepo {
     return rows.length;
   }
 
+  // ---------- Retention (SPEC.md §10.7) ----------
+
+  /** Voicemail recordings older than `before` that still point at Twilio. */
+  oldRecordings(before: Date, limit = 50) {
+    return this.many<{ id: string; recordingUrl: string }>(
+      "SELECT id, recording_url FROM inbound_events WHERE recording_url IS NOT NULL AND received_at < $1 ORDER BY received_at LIMIT $2",
+      [before, limit],
+    );
+  }
+
+  async clearRecording(id: string) {
+    await this.db.query("UPDATE inbound_events SET recording_url = NULL WHERE id = $1", [id]);
+  }
+
+  /**
+   * Deletes test evidence older than `before`: screenshots, message text, and the
+   * report's detail. Scores and grades stay for trend lines.
+   */
+  async purgeEvidence(before: Date): Promise<number> {
+    const files = await this.db.query("DELETE FROM evidence_files WHERE created_at < $1 RETURNING id", [before]);
+    await this.db.query("UPDATE inbound_events SET body = NULL, subject = NULL, headers = '{}' WHERE received_at < $1 AND (body IS NOT NULL OR subject IS NOT NULL)", [before]);
+    await this.db.query("UPDATE outbound_messages SET body = '', evidence = '{}' WHERE sent_at < $1 AND body <> ''", [before]);
+    const tests = await this.db.query("UPDATE shopper_tests SET result = NULL WHERE result IS NOT NULL AND COALESCE(delivered_at, updated_at) < $1 RETURNING id", [before]);
+    return files.rows.length + tests.rows.length;
+  }
+
   // ---------- Ops tasks ----------
 
   async createTask(t: {

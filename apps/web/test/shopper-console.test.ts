@@ -66,6 +66,27 @@ describe("console permissions", () => {
   });
 });
 
+describe("cancelling", () => {
+  it("refunds the unsent share and still grades what was sent", async () => {
+    const refund = vi.fn(async () => ({ id: "re_2", status: "succeeded" }));
+    const { deps, repo, clock, test, orderId } = await paidOrder({
+      stripe: { refund, createCheckoutSession: async () => ({ id: "cs", url: "https://x" }) } as unknown as StripeClient,
+      formBot: { submit: async () => ({ status: "submitted", confirmation: "Thanks!" }) },
+    });
+    await runTaskAction(deps, admin, (await repo.openTaskFor("verify_ownership", { testId: test.id }))!.id, { action: "verify" });
+    const [first] = await repo.assignmentsForTest(test.id);
+    clock.now = new Date(first!.scheduledAt.getTime() + 60_000);
+    await runShopperTick(deps); // one of three sent
+    const { cancelTest } = await import("@/lib/shopper/admin");
+    expect(await cancelTest(deps, va, test.id, "prorated")).toMatchObject({ ok: false, status: 403 });
+    expect(await cancelTest(deps, admin, test.id, "prorated")).toEqual({ ok: true });
+    expect(refund).toHaveBeenCalledWith("pi_1", 13267); // two thirds of $199
+    expect((await repo.getOrder(orderId))!.status).toBe("paid");
+    expect((await repo.getTest(test.id))!.status).toBe("qa"); // partial report
+    expect((await repo.assignmentsForTest(test.id)).map((a) => a.sendStatus).sort()).toEqual(["cancelled", "cancelled", "sent"]);
+  });
+});
+
 describe("VA work on a running test", () => {
   it("records a form submitted by hand, or switches a broken form to email", async () => {
     const { deps, repo, clock, test } = await paidOrder();

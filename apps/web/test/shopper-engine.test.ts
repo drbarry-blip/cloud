@@ -281,3 +281,29 @@ describe("persona reply drafts", () => {
     expect(checkPersonaReply("Thanks! Is there any downtime afterward?\n\nJessica")).toEqual([]);
   });
 });
+
+describe("retention", () => {
+  it("drops voicemail audio after 12 months and evidence after 24, keeping scores", async () => {
+    const { applyRetention } = await import("@/lib/shopper/retention");
+    const { deps, repo, clock, test, personas } = await scheduledTest();
+    clock.now = new Date(personas[personas.length - 1]!.scheduledAt.getTime() + 60_000);
+    await runShopperTick(deps);
+    const silent = (await repo.assignmentsForTest(test.id)).find((a) => a.script === "silent")!;
+    await recordCallStart(deps, { sid: "CAold", from: "+15125550100", to: silent.phoneNumber!, receivedAt: clock.now });
+    await recordCallDetails(deps, "CAold", { recordingUrl: "https://api.twilio.com/2010-04-01/Accounts/AC1/Recordings/RE1", recordingSeconds: 10 });
+    await recordTranscript(deps, "CAold", "Hi, this is the clinic calling back.");
+    clock.now = new Date(clock.now.getTime() + 20 * DAY);
+    await runShopperTick(deps); // closes and grades
+
+    clock.now = new Date(clock.now.getTime() + 400 * DAY);
+    expect(await applyRetention(deps)).toEqual({ recordings: 1, evidence: 0 });
+    expect((await repo.inboundByExternalId("CAold"))!).toMatchObject({ recordingUrl: null, body: "Hi, this is the clinic calling back." });
+
+    clock.now = new Date(clock.now.getTime() + 400 * DAY);
+    expect((await applyRetention(deps)).evidence).toBeGreaterThan(0);
+    const after = (await repo.getTest(test.id))!;
+    expect(after.result).toBeNull();
+    expect(after.grade).toMatch(/^[A-F]$/);
+    expect((await repo.inboundByExternalId("CAold"))!.body).toBeNull();
+  });
+});

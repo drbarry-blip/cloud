@@ -181,7 +181,7 @@ export async function relabelTouch(deps: ShopperDeps, staff: Staff, eventId: str
  * A test that already sent inquiries goes to grading, so the owner still gets a
  * partial report.
  */
-export async function cancelTest(deps: ShopperDeps, staff: Staff, testId: string, refund: "full" | "none"): Promise<Result> {
+export async function cancelTest(deps: ShopperDeps, staff: Staff, testId: string, refund: "full" | "prorated" | "none"): Promise<Result> {
   if (staff.role !== "admin") return { ok: false, status: 403, message: "Only an admin can cancel a test." };
   const { repo, playbook } = deps;
   const test = await repo.getTest(testId);
@@ -198,9 +198,11 @@ export async function cancelTest(deps: ShopperDeps, staff: Staff, testId: string
   await repo.cancelOpenTasks({ testId, type: "approve_reply" }, now, "Test cancelled");
   await repo.releaseNumbers(testId, new Date(now.getTime() + playbook.personaRules.timing.number_quarantine_days * 86_400_000));
   await repo.audit(actor, "test.cancelled", { type: "test", id: testId }, { refund, partialReport: target === "grading" });
-  if (refund === "full" && test.orderId) {
+  if (refund !== "none" && test.orderId) {
     const order = await repo.getOrder(test.orderId);
-    if (order) await refundOrder(deps, order, actor);
+    // Prorated: the share of inquiries that never went out (SPEC.md §7.1).
+    const unsent = assignments.length ? assignments.filter((a) => a.sendStatus !== "sent").length / assignments.length : 1;
+    if (order) await refundOrder(deps, order, actor, refund === "full" ? undefined : Math.round(order.amountCents * unsent));
   }
   if (target === "grading") await gradeAndQueueQa(deps, testId);
   return { ok: true };

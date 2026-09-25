@@ -7,7 +7,7 @@ import { gradeShopperTest } from "@/lib/shopper/grade";
 import { scheduleTest } from "@/lib/shopper/schedule";
 
 const Body = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("cancel"), refund: z.enum(["full", "none"]) }),
+  z.object({ action: z.literal("cancel"), refund: z.enum(["full", "prorated", "none"]) }),
   z.object({ action: z.literal("regrade") }),
   z.object({ action: z.literal("schedule") }),
 ]);

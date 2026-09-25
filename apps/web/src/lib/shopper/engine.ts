@@ -5,6 +5,7 @@ import type { FormSubmission } from "./form-bot";
 import { gradeAndQueueQa } from "./grade";
 import { notifyOps } from "./ops";
 import type { Assignment, InquiryChannel } from "./repo";
+import { applyRetention } from "./retention";
 import { noResponseAlerts, promoteQueuedRetests } from "./retest";
 
 const MINUTE = 60_000;
@@ -174,6 +175,7 @@ export interface TickSummary {
   purged: number;
   retestsStarted: number;
   alerts: number;
+  expired: number;
 }
 
 /** One run of the scheduler (every few minutes via /api/cron/shopper). */
@@ -184,5 +186,6 @@ export async function runShopperTick(deps: ShopperDeps): Promise<TickSummary> {
   const retestsStarted = await promoteQueuedRetests(deps);
   const alerts = await noResponseAlerts(deps);
   const purged = await deps.repo.purgeQuarantined(new Date(deps.now().getTime() - PHI_HOLD_MS));
-  return { sent, toVa, rescued, closed, purged, retestsStarted, alerts };
+  const retention = await applyRetention(deps);
+  return { sent, toVa, rescued, closed, purged, retestsStarted, alerts, expired: retention.recordings + retention.evidence };
 }

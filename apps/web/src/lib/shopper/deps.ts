@@ -26,6 +26,8 @@ export interface ShopperDeps {
   allowSimulatedCheckout: boolean;
   /** Where to send alerts about new ops tasks; null logs them instead. */
   opsEmail: string | null;
+  /** False silences ops alerts entirely (the sample report's throwaway run). */
+  notifyOps?: boolean;
   /** Submits web forms; null sends every form to a VA. */
   formBot?: FormBot | null;
   /** Claude, when configured: judges conversation quality and drafts persona replies. */

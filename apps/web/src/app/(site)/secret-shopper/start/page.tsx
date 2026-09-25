@@ -2,6 +2,7 @@ import { US_TIMEZONES } from "@cgs/core";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
+import { getStaff } from "@/lib/auth";
 import { config } from "@/lib/config";
 import { getPlaybook } from "@/lib/playbook";
 import { formatUsd, PRICES } from "@/lib/shopper/purchase";
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 
 export default async function StartPage({ searchParams }: { searchParams: Promise<{ cancelled?: string }> }) {
   await connection();
-  if (!config.shopperOpen()) redirect("/secret-shopper#waitlist");
+  if (!config.shopperOpen() && !(await getStaff())) redirect("/secret-shopper#waitlist");
   const { cancelled } = await searchParams;
   const clinicTypes = Object.values(getPlaybook().clinicTypes).map((c) => ({
     id: c.id,

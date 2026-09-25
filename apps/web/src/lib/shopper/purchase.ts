@@ -341,17 +341,22 @@ export async function rejectVerification(deps: ShopperDeps, clinicId: string, ac
   }
 }
 
-/** Refunds a paid order in full. Returns true if money went back (or would have, in development). */
-export async function refundOrder(deps: ShopperDeps, order: Order, actor: string): Promise<boolean> {
+/**
+ * Refunds a paid order, in full or in part (`amountCents`). Returns true if money went
+ * back (or would have, in development). A partial refund leaves the order paid.
+ */
+export async function refundOrder(deps: ShopperDeps, order: Order, actor: string, amountCents?: number): Promise<boolean> {
   const { repo } = deps;
   if (order.status === "pending") {
     await repo.setOrderStatus(order.id, "cancelled");
     return false;
   }
   if (order.status !== "paid") return order.status === "refunded";
-  if (deps.stripe && order.stripePaymentIntent) await deps.stripe.refund(order.stripePaymentIntent);
+  const partial = amountCents !== undefined && amountCents < order.amountCents;
+  if (amountCents !== undefined && amountCents <= 0) return false;
+  if (deps.stripe && order.stripePaymentIntent) await (partial ? deps.stripe.refund(order.stripePaymentIntent, amountCents) : deps.stripe.refund(order.stripePaymentIntent));
   else if (deps.stripe) throw new Error(`Order ${order.id} has no payment to refund`);
-  await repo.setOrderStatus(order.id, "refunded");
-  await repo.audit(actor, "order.refunded", { type: "order", id: order.id }, { amountCents: order.amountCents });
+  if (!partial) await repo.setOrderStatus(order.id, "refunded");
+  await repo.audit(actor, partial ? "order.partially_refunded" : "order.refunded", { type: "order", id: order.id }, { amountCents: partial ? amountCents : order.amountCents });
   return true;
 }

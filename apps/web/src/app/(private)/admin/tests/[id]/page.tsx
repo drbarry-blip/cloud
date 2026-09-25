@@ -170,6 +170,7 @@ export default async function TestPage({ params }: { params: Promise<{ id: strin
           {isAdmin && ["awaiting_payment", "awaiting_verification", "scheduled", "running"].includes(test.status) ? (
             <>
               <ActionButton endpoint={endpoint} body={{ action: "cancel", refund: "none" }} label="Cancel (no refund)" confirm="Cancel this test? Unsent inquiries stop; anything already sent is graded into a partial report." />
+              <ActionButton endpoint={endpoint} body={{ action: "cancel", refund: "prorated" }} label="Cancel and refund unsent inquiries" confirm="Cancel this test and refund the share of inquiries that weren't sent?" />
               <ActionButton endpoint={endpoint} body={{ action: "cancel", refund: "full" }} label="Cancel and refund in full" confirm="Cancel this test and refund the customer in full?" />
             </>
           ) : null}

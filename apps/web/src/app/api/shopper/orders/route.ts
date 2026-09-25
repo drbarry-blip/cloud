@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getStaff } from "@/lib/auth";
 import { config } from "@/lib/config";
 import { clientIp, error, json, parseBody } from "@/lib/http";
 import { takeDaily } from "@/lib/rate-limit";
@@ -11,7 +12,8 @@ const Body = StartOrderSchema.extend({ turnstileToken: z.string().max(4000).opti
 
 /** Saves the clinic setup and starts checkout for a Baseline Test. */
 export async function POST(request: Request) {
-  if (!config.shopperOpen()) return error(403, "The Secret Shopper isn't open for orders yet.");
+  // Staff can order before launch, for the test-clinic dry run.
+  if (!config.shopperOpen() && !(await getStaff())) return error(403, "The Secret Shopper isn't open for orders yet.");
   const parsed = await parseBody(request, Body, 20_000);
   if ("response" in parsed) return parsed.response;
   const ip = clientIp(request);

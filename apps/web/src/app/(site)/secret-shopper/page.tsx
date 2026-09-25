@@ -45,13 +45,16 @@ export default async function SecretShopperPage() {
           Most owners don&apos;t know how many leads their front desk loses. The Secret Shopper shows you in two weeks, without a
           sales call.
         </p>
-        {open ? (
-          <p>
+        <p style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {open ? (
             <Link className="btn btn-primary" href="/secret-shopper/start">
               Start a test ({formatUsd(PRICES.baseline.cents)})
             </Link>
-          </p>
-        ) : null}
+          ) : null}
+          <Link className="btn btn-secondary" href="/secret-shopper/sample-report">
+            See a sample report
+          </Link>
+        </p>
       </section>
 
       <section className="card">

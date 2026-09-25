@@ -27,10 +27,29 @@ export default function PrivacyPage() {
           <li><strong>Usage limits</strong>: daily counters keyed by a one-way hash of your IP address or email.</li>
           <li><strong>Page views</strong> on most pages, through privacy-friendly analytics with no cookies. The Reply Checker page has no analytics.</li>
         </ul>
+        <h2>Secret Shopper</h2>
+        <ul>
+          <li>
+            <strong>What we keep:</strong> your email, the clinic details you confirm (name, website, public email, form pages,
+            hours, services), and your order. The inquiries come from fictional people; no real patient is involved.
+          </li>
+          <li>
+            <strong>Evidence:</strong> what the clinic sends back to the fictional patients (emails, texts, call logs, voicemail
+            recordings and transcripts) and screenshots of form submissions. We keep evidence for 24 months and voicemail audio for
+            12 months, then delete it. Scores stay so you can see trends.
+          </li>
+          <li>
+            <strong>If a clinic sends real patient information by mistake,</strong> we restrict it to administrators, tell the
+            customer, and delete it within 7 days.
+          </li>
+          <li>Payments are handled by Stripe. We never see or store card numbers.</li>
+        </ul>
         <h2>Services we use</h2>
         <p>
-          Google (Maps and PageSpeed data), Anthropic (AI review of pasted replies), Cloudflare (bot protection), our email
-          provider, and our hosting and database providers. Pasted replies are sent to Anthropic only to produce your result.
+          Google (Maps and PageSpeed data), Anthropic (AI review of pasted replies, grading Secret Shopper responses, and drafting
+          fictional patients&apos; replies), Cloudflare (bot protection and receiving email), Stripe (payments), Twilio (phone
+          numbers, voicemail, and texts), our email provider, and our hosting and database providers. Pasted replies are sent to
+          Anthropic only to produce your result.
         </p>
         <h2>Please don&apos;t paste patient information</h2>
         <p>

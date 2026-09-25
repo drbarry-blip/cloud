@@ -5,6 +5,7 @@ import type { OpsTask } from "./repo";
 
 /** Tells the ops inbox about a new task. Lines must never include message bodies or PHI. */
 export async function notifyOps(deps: ShopperDeps, task: OpsTask, lines: string[]): Promise<void> {
+  if (deps.notifyOps === false) return;
   const url = `${deps.siteUrl}/admin/tasks/${task.id}`;
   if (!deps.opsEmail) {
     console.info(`[ops] ${task.title} (${task.type}) ${url}`);
