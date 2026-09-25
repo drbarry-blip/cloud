@@ -88,8 +88,35 @@ booking_tool_signatures:
   - { name: "Practice Better",   domains: ["practicebetter.io"] }
   - { name: "LocalMed",          domains: ["localmed.com"] }
 
+# Text and chat widgets, detected the same way. TODO(build): confirm against live sites.
+chat_widget_signatures:
+  - { name: "Podium",       domains: ["podium.com"] }
+  - { name: "Birdeye",      domains: ["birdeye.com"] }
+  - { name: "Weave",        domains: ["getweave.com"] }
+  - { name: "Tawk.to",      domains: ["tawk.to"] }
+  - { name: "Intercom",     domains: ["intercom.io", "intercomcdn.com"] }
+  - { name: "Drift",        domains: ["drift.com", "driftt.com"] }
+  - { name: "LiveChat",     domains: ["livechatinc.com"] }
+  - { name: "Tidio",        domains: ["tidio.co", "tidiochat.com"] }
+  - { name: "HubSpot chat", domains: ["usemessages.com"] }
+  - { name: "Crisp",        domains: ["crisp.chat"] }
+
+# Contact forms embedded from these services can't be field-counted from the page itself.
+embedded_form_signatures:
+  - { name: "Jotform",      domains: ["jotform.com"] }
+  - { name: "HubSpot forms", domains: ["hsforms.net", "hsforms.com"] }
+  - { name: "Typeform",     domains: ["typeform.com"] }
+  - { name: "Wufoo",        domains: ["wufoo.com"] }
+  - { name: "Formstack",    domains: ["formstack.com"] }
+  - { name: "Google Forms", domains: ["docs.google.com/forms", "forms.gle"] }
+
 # The free score uses these pre-written quick wins (no AI), picked from the weakest signals.
 quick_wins:
+  rating_vs_median: "Your rating trails nearby competitors. Reply to every review and fix the issues that come up most."
+  core_web_vitals: "Your site feels slow to real visitors on phones. Ask your web person to fix loading and layout shifts."
+  https_and_mobile_layout: "Make sure your site uses HTTPS and a mobile-friendly layout. Browsers warn visitors about insecure sites."
+  website_linked: "Add your website link to your Google Business Profile."
+  phone_listed: "Add your phone number to your Google Business Profile."
   online_booking_detected: "Add online booking. Patients who can book at 10 pm won't wait until you open."
   tap_to_call_on_mobile: "Make your phone number tappable on mobile so one tap starts a call."
   short_contact_form: "Cut your contact form to 5 fields or fewer: name, phone, email, service, message."

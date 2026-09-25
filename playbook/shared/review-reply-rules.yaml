@@ -66,6 +66,16 @@ categories:
   tone:
     severity: caution
     explain: "Defensive, sarcastic, or blaming. Not a privacy issue, but it hurts trust."
+    phrases:
+      - "that's not true"
+      - "that is not true"
+      - "you should have"
+      - "if you had"
+      - "not our fault"
+      - "your fault"
+      - "you failed to"
+      - "fake review"
+      - "false review"
   no_private_path:
     severity: caution
     explain: "Doesn't invite the reviewer to contact the office directly."
