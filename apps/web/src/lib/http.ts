@@ -10,10 +10,16 @@ export function error(status: number, message: string, extra: Record<string, unk
   return json({ error: message, ...extra }, status);
 }
 
-/** Best-effort client IP. Cloud Run and most proxies put the client first in X-Forwarded-For. */
-export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+/**
+ * Client IP for rate limiting. Clients can put anything at the front of X-Forwarded-For,
+ * so we count from the end: each trusted proxy appends the address it saw. Cloud Run
+ * alone appends one entry (TRUSTED_PROXY_COUNT=1, the default); behind a Google load
+ * balancer there are two.
+ */
+export function clientIp(request: Request, trustedProxies = Number(process.env.TRUSTED_PROXY_COUNT ?? 1)): string {
+  const entries = (request.headers.get("x-forwarded-for") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const hops = Number.isFinite(trustedProxies) && trustedProxies >= 1 ? Math.floor(trustedProxies) : 1;
+  return entries[entries.length - hops] ?? entries[0] ?? request.headers.get("x-real-ip") ?? "unknown";
 }
 
 /** Parses a JSON body against a schema. Never logs the body. */

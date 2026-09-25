@@ -31,6 +31,17 @@ describe("checkReplyRules", () => {
     });
   });
 
+  it("catches a name addressed at the end of a sentence", () => {
+    expect(check("Thanks so much for the kind words, Jane!")).toMatchObject({
+      verdict: "needs_changes",
+      flags: [{ category: "identifiers", match: "Jane" }],
+    });
+  });
+
+  it("allows naming the clinic's own contact person", () => {
+    expect(check("We'd love to hear more. Please call our office manager, Maria.").verdict).toBe("safe");
+  });
+
   it("allows kind replies with no details", () => {
     expect(check("Thanks so much for the kind words! Our team loves hearing this.").verdict).toBe("safe");
   });

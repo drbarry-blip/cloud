@@ -55,6 +55,8 @@ const NOT_NAMES = new Set([
 // Greeting words match either case; the name itself must be capitalized.
 const SALUTATION_NAME = /\b(?:[Hh]i|[Hh]ello|[Hh]ey|[Dd]ear|[Tt]hanks|[Tt]hank you(?: so much)?|[Ww]elcome)[,!]?\s+([A-Z][a-z]{1,20})\b/g;
 const TITLED_NAME = /\b(?:Mr|Mrs|Ms|Miss|Mx)\.?\s+[A-Z][a-z]{1,20}\b/g;
+// A name addressed at the end of a sentence: "Thanks for the kind words, Jane!"
+const VOCATIVE_NAME = /,\s*([A-Z][a-z]{1,20})\s*[!.?](?=\s|$)/g;
 const STAFF_NAME = /\b(?:Dr|Doctor|Nurse|NP|PA|Hygienist|Therapist)\.?\s+[A-Z][a-z]{1,20}\b/g;
 const DATES = [
   /\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?\b/gi,
@@ -128,6 +130,15 @@ export function checkReplyRules(
     const name = m[1]!;
     if (NOT_NAMES.has(name)) continue;
     const start = m.index! + m[0].lastIndexOf(name);
+    add("identifiers", "caution", { match: name, start, end: start + name.length }, "Uses the reviewer's name. On its own that's a caution; with any other flag it's unsafe.");
+  }
+  for (const m of reply.matchAll(VOCATIVE_NAME)) {
+    const name = m[1]!;
+    if (NOT_NAMES.has(name)) continue;
+    // "call our office manager, Maria" names the clinic's own contact, not the reviewer.
+    if (/\b(?:manager|coordinator|director|owner|administrator|supervisor|lead|receptionist|concierge)\s*$/i.test(reply.slice(Math.max(0, m.index! - 40), m.index!))) continue;
+    const start = m.index! + m[0].indexOf(name);
+    if (isSignOff(reply, start, start + name.length)) continue;
     add("identifiers", "caution", { match: name, start, end: start + name.length }, "Uses the reviewer's name. On its own that's a caution; with any other flag it's unsafe.");
   }
   for (const hit of findAll(reply, TITLED_NAME)) {
