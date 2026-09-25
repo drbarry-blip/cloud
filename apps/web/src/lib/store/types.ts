@@ -35,6 +35,7 @@ export interface VisibilityScanRecord {
 export interface Store {
   upsertLead(input: { email: string; source: LeadSource; marketingConsent: boolean }): Promise<Lead>;
   getLead(id: string): Promise<Lead | null>;
+  getLeadByEmail(email: string): Promise<Lead | null>;
   confirmLead(id: string, now: Date): Promise<Lead | null>;
   unsubscribeLead(id: string, now: Date): Promise<void>;
   /** Confirmed, subscribed, consenting leads whose next nurture email is due. */

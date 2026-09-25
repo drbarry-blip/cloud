@@ -47,6 +47,11 @@ export class SqlStore implements Store {
     return rows[0] ? toLead(rows[0]) : null;
   }
 
+  async getLeadByEmail(email: string) {
+    const { rows } = await this.db.query<LeadRow>("SELECT * FROM leads WHERE email = $1", [normalizeEmail(email)]);
+    return rows[0] ? toLead(rows[0]) : null;
+  }
+
   async confirmLead(id: string, now: Date) {
     const { rows } = await this.db.query<LeadRow>("UPDATE leads SET confirmed_at = COALESCE(confirmed_at, $2) WHERE id = $1 RETURNING *", [id, now]);
     return rows[0] ? toLead(rows[0]) : null;

@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { liveShopperDeps } from "@/lib/shopper/deps";
 import { canAutoVerify, formatUsd } from "@/lib/shopper/purchase";
 import type { TestStatus } from "@/lib/shopper/repo";
+import { reportUrl } from "@/lib/shopper/report";
 import { testDates } from "@/lib/shopper/schedule";
 import { verifyToken } from "@/lib/tokens";
 import { ClinicCode } from "./ClinicCode";
@@ -46,7 +47,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
         <p className="eyebrow">Secret Shopper order</p>
         <h1>{clinic.name}</h1>
         <p className="lead">
-          Baseline Test · {formatUsd(order.amountCents)}
+          {order.product === "retest_monthly" ? "Monthly Retest" : "Baseline Test"} · {formatUsd(order.amountCents)}
           {order.status === "refunded" ? " · Refunded" : ""}
         </p>
       </section>
@@ -122,7 +123,11 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
       {status === "delivered" ? (
         <div className="card">
           <h2 style={{ marginTop: 0 }}>Your report is ready</h2>
-          <p>We emailed you a link to your report.</p>
+          <p>
+            <a className="btn btn-primary" href={reportUrl("", test!.id)}>
+              Open your report
+            </a>
+          </p>
         </div>
       ) : null}
 

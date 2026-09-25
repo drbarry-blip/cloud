@@ -72,3 +72,57 @@ export function opsAlertEmail(p: { title: string; lines: string[]; url: string }
     reason: "You're getting this because you're on the operations team.",
   });
 }
+
+export function reportReadyEmail(p: {
+  clinicName: string;
+  grade: string;
+  score: number;
+  headline: string;
+  reportUrl: string;
+  kind: "baseline" | "retest" | "quarterly";
+  scoreDrop: { from: number; to: number } | null;
+  retestUrl: string | null;
+}): Email {
+  const blocks = [
+    { text: `Your ${p.kind === "retest" ? "monthly retest" : "Secret Shopper"} report for ${p.clinicName} is ready.` },
+    { text: `Grade: ${p.grade} (${Math.round(p.score)}/100)\n${p.headline}` },
+    ...(p.scoreDrop ? [{ text: `Heads up: the score dropped from ${Math.round(p.scoreDrop.from)} to ${Math.round(p.scoreDrop.to)} since your last test.` }] : []),
+    { text: "The report shows every response, your top fixes, and scripts your front desk can use today. It also lists the fictional names, emails, and numbers to delete from your systems.", link: { label: "Open your report", href: p.reportUrl } },
+    ...(p.retestUrl ? [{ text: "Want to know if the fixes stick? Monthly Retests send two new inquiries every month and track your score.", link: { label: "Add Monthly Retests", href: p.retestUrl } }] : []),
+  ];
+  return renderEmail(`Your Secret Shopper report: ${p.clinicName} (${p.grade})`, blocks, { kind: "transactional", reason: BUYER });
+}
+
+export function noResponseAlertEmail(p: { clinicName: string; accountUrl: string }): Email {
+  return renderEmail(
+    `Alert: a new-patient inquiry to ${p.clinicName} has no response yet`,
+    [
+      { text: `One of this month's test inquiries to ${p.clinicName} has gone 48 hours without a personal response.` },
+      { text: "Please don't tell the team about the test. Instead, check that new web and email inquiries reach someone who follows up the same day.", link: { label: "View your account", href: p.accountUrl } },
+    ],
+    { kind: "transactional", reason: "You're getting this because you subscribe to Monthly Retests." },
+  );
+}
+
+export function phiNoticeEmail(p: { clinicName: string }): Email {
+  return renderEmail(
+    `Privacy notice about your Secret Shopper test for ${p.clinicName}`,
+    [
+      { text: `During your test, a message from ${p.clinicName} to one of our fictional patients appeared to contain another person's health information.` },
+      { text: "We limited access to it, and it has now been deleted from our systems. We didn't use it in your report." },
+      { text: "You may want to review how it was sent and follow your own privacy procedures. Reply to this email if you have questions." },
+    ],
+    { kind: "transactional", reason: BUYER },
+  );
+}
+
+export function signInEmail(p: { url: string; forStaff: boolean }): Email {
+  return renderEmail(
+    p.forStaff ? "Your console sign-in link" : "Your sign-in link",
+    [
+      { text: p.forStaff ? "Use this link to sign in to the operations console. It expires in 15 minutes." : "Use this link to sign in to your account. It expires in 30 minutes.", link: { label: "Sign in", href: p.url } },
+      { text: "If you didn't ask for this, you can ignore this email." },
+    ],
+    { kind: "transactional", reason: "You're getting this because someone asked to sign in with this address." },
+  );
+}

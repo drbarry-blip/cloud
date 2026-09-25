@@ -438,6 +438,13 @@ export class ShopperRepo {
     return this.one<Subscription>("SELECT * FROM subscriptions WHERE stripe_subscription_id = $1", [stripeSubscriptionId]);
   }
 
+  setSubscriptionStatus(stripeSubscriptionId: string, status: Subscription["status"], currentPeriodEnd: Date | null) {
+    return this.one<Subscription>(
+      "UPDATE subscriptions SET status = $2, current_period_end = COALESCE($3, current_period_end) WHERE stripe_subscription_id = $1 RETURNING *",
+      [stripeSubscriptionId, status, currentPeriodEnd],
+    );
+  }
+
   getSubscription(id: string) {
     return this.one<Subscription>("SELECT * FROM subscriptions WHERE id = $1", [id]);
   }
@@ -485,6 +492,24 @@ export class ShopperRepo {
 
   testsForClinic(clinicId: string) {
     return this.many<ShopperTest>("SELECT * FROM shopper_tests WHERE clinic_id = $1 ORDER BY created_at DESC", [clinicId]);
+  }
+
+  testsForSubscription(subscriptionId: string) {
+    return this.many<ShopperTest>("SELECT * FROM shopper_tests WHERE subscription_id = $1 ORDER BY created_at", [subscriptionId]);
+  }
+
+  /** Queued retests (paid, waiting for the clinic's current test to finish). */
+  queuedRetests() {
+    return this.many<ShopperTest>(
+      `SELECT t.* FROM shopper_tests t JOIN orders o ON o.id = t.order_id
+       WHERE t.status = 'awaiting_payment' AND t.subscription_id IS NOT NULL AND o.status = 'paid' ORDER BY t.created_at`,
+      [],
+    );
+  }
+
+  /** Delivered tests for a clinic, newest first (for trends and score-drop alerts). */
+  deliveredTests(clinicId: string) {
+    return this.many<ShopperTest>("SELECT * FROM shopper_tests WHERE clinic_id = $1 AND status = 'delivered' ORDER BY delivered_at DESC", [clinicId]);
   }
 
   testsWithStatus(statuses: readonly TestStatus[], limit = 100) {
@@ -630,14 +655,27 @@ export class ShopperRepo {
     return this.one<Assignment>("UPDATE persona_assignments SET channel = $2, target = $3 WHERE id = $1 RETURNING *", [id, channel, target]);
   }
 
+  /** Puts an inquiry back in the send queue at `at` (a retry, or a switch to another channel). */
+  rescheduleAssignment(id: string, at: Date) {
+    return this.one<Assignment>(
+      "UPDATE persona_assignments SET send_status = 'scheduled', scheduled_at = $2 WHERE id = $1 AND send_status IN ('needs_va', 'failed', 'scheduled') RETURNING *",
+      [id, at],
+    );
+  }
+
   assignmentByEmail(email: string) {
     return this.one<Assignment>("SELECT * FROM persona_assignments WHERE email = $1", [email.trim().toLowerCase()]);
   }
 
-  /** The persona a number belonged to most recently (numbers are quarantined before reuse). */
+  /**
+   * The persona a call or text on this number belongs to: the latest one whose inquiry
+   * had gone out (or was due) by then. Numbers are quarantined between tests, so
+   * there's no overlap.
+   */
   assignmentByPhone(e164: string, at: Date) {
     return this.one<Assignment>(
-      "SELECT * FROM persona_assignments WHERE phone_number = $1 AND created_at <= $2 ORDER BY created_at DESC LIMIT 1",
+      `SELECT * FROM persona_assignments WHERE phone_number = $1 AND COALESCE(sent_at, scheduled_at) <= $2
+       ORDER BY COALESCE(sent_at, scheduled_at) DESC LIMIT 1`,
       [e164, at],
     );
   }
@@ -752,6 +790,11 @@ export class ShopperRepo {
 
   setPhiQuarantine(id: string, quarantined: boolean) {
     return this.one<InboundEvent>("UPDATE inbound_events SET phi_quarantined = $2 WHERE id = $1 RETURNING *", [id, quarantined]);
+  }
+
+  /** Deletes one message's content now (confirmed PHI). Keeps the time and channel for the record. */
+  async purgeInbound(id: string) {
+    await this.db.query("UPDATE inbound_events SET body = NULL, subject = NULL, recording_url = NULL, headers = '{}', phi_quarantined = true WHERE id = $1", [id]);
   }
 
   /** Deletes the content of quarantined messages flagged before `before` (SPEC.md §9.1: within 7 days). */
@@ -903,6 +946,11 @@ export class ShopperRepo {
       subject?.id ?? null,
       JSON.stringify(details),
     ]);
+  }
+
+  async hasAudit(action: string, subjectType: string, subjectId: string): Promise<boolean> {
+    const { rows } = await this.db.query("SELECT 1 FROM audit_log WHERE action = $1 AND subject_type = $2 AND subject_id = $3 LIMIT 1", [action, subjectType, subjectId]);
+    return rows.length > 0;
   }
 
   auditFor(subjectType: string, subjectId: string) {

@@ -100,13 +100,20 @@ export async function scheduleTest(deps: ShopperDeps, testId: string): Promise<S
     return { ok: false as const, reason };
   };
 
+  // Retests rotate which service leads, so month to month each gets asked about.
+  let serviceIds = clinic.services;
+  if (test.subscriptionId && serviceIds.length > 1) {
+    const k = Math.max(0, (await repo.testsForSubscription(test.subscriptionId)).findIndex((t) => t.id === test.id)) % serviceIds.length;
+    serviceIds = [...serviceIds.slice(k), ...serviceIds.slice(0, k)];
+  }
+
   let plans;
   let routes;
   try {
     plans = planPersonas(random, {
       clinicType,
       scripts: test.scripts,
-      serviceIds: clinic.services,
+      serviceIds,
       domains: deps.personaDomains(),
       takenEmails: await repo.personaEmails(),
     });

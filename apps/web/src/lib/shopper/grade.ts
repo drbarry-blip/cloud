@@ -36,6 +36,8 @@ export interface ReportData {
     serviceName: string;
     sentAt: string | null;
     delivered: boolean;
+    /** Form screenshots and the confirmation the clinic's site showed (evidence file IDs). */
+    inquiryEvidence: { before: string | null; after: string | null; confirmation: string | null };
     personaReplies: { at: string; text: string }[];
     touches: {
       id: string;
@@ -145,6 +147,11 @@ export async function gradeShopperTest(deps: ShopperDeps, testId: string, aiJudg
       serviceName: a.serviceName,
       sentAt: iso(a.sentAt),
       delivered: a.sendStatus === "sent",
+      inquiryEvidence: (() => {
+        const ev = outbound.find((o) => o.assignmentId === a.id && o.kind === "inquiry")?.evidence ?? {};
+        const str = (v: unknown) => (typeof v === "string" ? v : null);
+        return { before: str(ev.form_before), after: str(ev.form_after), confirmation: str(ev.confirmation) };
+      })(),
       personaReplies: outbound.filter((o) => o.assignmentId === a.id && o.kind === "follow_up").map((o) => ({ at: o.sentAt.toISOString(), text: o.body })),
       touches: events
         .filter((e) => e.assignmentId === a.id)

@@ -68,7 +68,8 @@ export function planPersonas(
     avoidNames?: readonly string[];
   },
 ): PersonaPlan[] {
-  const services = input.clinicType.services.filter((s) => input.serviceIds.includes(s.id));
+  // In the order given, so callers can rotate services from test to test.
+  const services = input.serviceIds.flatMap((id) => input.clinicType.services.filter((s) => s.id === id));
   if (services.length === 0) throw new Error("Pick at least one service to test");
   const taken = new Set(input.takenEmails);
   const usedServices: string[] = [];
