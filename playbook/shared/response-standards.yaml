@@ -4,15 +4,15 @@
 
 speed_targets:
   business_hours:
-    first_human_response_minutes: 5     # TODO(owner): your standard. 5 minutes is the common speed-to-lead rule of thumb.
-    acceptable_minutes: 60              # beyond this, the report calls speed a problem
+    first_human_response_minutes: 60    # Owner's standard (2026-09-25): a human reply within 1 hour earns full marks
+    acceptable_minutes: 240             # beyond this, the report calls speed a problem
   after_hours:
-    instant_auto_reply: true            # an automatic reply within about a minute, ideally with a booking link
-    first_human_response_minutes_after_opening: 30   # TODO(owner)
+    instant_auto_reply: true            # Owner's standard: an automatic reply within about a minute, ideally with a booking link
+    first_human_response_minutes_after_opening: 60   # Owner's standard (2026-09-25)
 
 follow_up:
   window_days: 10                       # how long a clinic should keep trying before giving up
-  minimum_human_touches: 5              # TODO(owner): calls, texts, and emails from a person (not automations)
+  minimum_human_touches: 5              # Owner confirmed (2026-09-25): calls, texts, and emails from a person (not automations)
   minimum_distinct_days: 3
   minimum_channels: 2                   # e.g., phone + email
   stop_when:

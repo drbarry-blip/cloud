@@ -2,10 +2,10 @@
 # Every Secret Shopper test, Visibility Score, and Location Report records the
 # version below, so any result can be traced back to the rules that produced it.
 
-version: "0.1.0-draft"
+version: "0.2.0-draft"
 status: draft            # draft | approved  (set to approved once you've reviewed it)
-last_updated: "2026-09-24"
-written_by: "Claude (draft from common industry practice; not yet reviewed by the owner)"
+last_updated: "2026-09-25"
+written_by: "Claude (draft from common industry practice); owner decisions applied for speed, after-hours, persistence, and script voice"
 
 shared:
   response_standards: shared/response-standards.yaml

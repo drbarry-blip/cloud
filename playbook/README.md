@@ -29,8 +29,8 @@ The playbook is your know-how, written down as data. The software reads these fi
 
 In order of impact:
 
-1. **Speed and follow-up standards** (`shared/response-standards.yaml`): are 5 minutes, 5+ touches, and 10 days right for your market?
-2. **Fix-it scripts** (`shared/fix-it-scripts.yaml`): rewrite them in the voice that works at your clinic. This is what customers copy.
+1. ~~**Speed and follow-up standards**~~ **Done (2026-09-25):** full marks for a human reply within 1 hour; after hours, an instant auto-reply plus a person within 1 hour of opening; 5+ attempts over 10 days.
+2. **Fix-it scripts** (`shared/fix-it-scripts.yaml`): the voice is set (warm and friendly). Edit any wording that doesn't sound like your best front-desk person. This is what customers copy.
 3. **Rubric weights and examples** (`shared/secret-shopper-rubric.yaml`): do the points match what actually turns inquiries into patients?
 4. **Fictional-patient messages** (`clinic-types/*.yaml` → `persona_inquiries`): do they sound like real patients in each clinic type?
 5. **Objections and questions** (`clinic-types/*.yaml`): add the ones your front desk hears most.

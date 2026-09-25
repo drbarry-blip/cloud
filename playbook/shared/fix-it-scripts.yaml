@@ -1,5 +1,6 @@
 # Templates in each Secret Shopper report's "fix-it kit". Clinics copy these,
-# so this is where your voice matters most. TODO(owner): rewrite these in the voice that works for you.
+# so this is where your voice matters most. Owner's choice (2026-09-25): warm and friendly.
+# TODO(owner): edit the wording itself wherever it doesn't sound like your best front-desk person.
 #
 # Words in {curly_braces} are filled in automatically:
 #   {patient_first_name}  {staff_name}  {clinic_name}  {callback_number}  {booking_link}
@@ -59,7 +60,7 @@ final_email: |
 # The 10-day follow-up cadence recommended in every report.
 # TODO(owner): tune it to what your front desk can realistically keep up with.
 cadence:
-  - { day: 0, when: "Within 5 minutes", actions: ["call", "voicemail if no answer", "text (with consent)", "first email"] }
+  - { day: 0, when: "Within 1 hour (sooner is better)", actions: ["call", "voicemail if no answer", "text (with consent)", "first email"] }
   - { day: 0, when: "2-3 hours later",  actions: ["call"] }
   - { day: 1, actions: ["call", "text (with consent)"] }
   - { day: 2, actions: ["email with helpful info (FAQs, pricing, what to expect)"] }
@@ -69,7 +70,7 @@ cadence:
   - { day: 10, actions: ["final email"] }
 
 front_desk_tips:
-  - "Answer web-form leads by phone first; most leads expect a call within minutes."
+  - "Call web-form leads first, within the hour. The sooner you call, the more likely they still remember reaching out."
   - "Log every attempt, so whoever picks up the next shift knows where each lead stands."
   - "Set up an after-hours auto-reply with a booking link; it's the cheapest speed win."
   - "Keep voicemails and texts free of health details, and generic for sensitive services."
