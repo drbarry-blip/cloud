@@ -23,7 +23,7 @@ const COUNTED_INPUT_TYPES = new Set(["text", "email", "tel", "number", "date", "
 /** How many links/buttons from the top of the page count as "near the top". Heuristic until Phase 2 renders pages. */
 const NEAR_TOP_ELEMENTS = 15;
 
-function matchSignatures(haystack: readonly string[], signatures: readonly Signature[]): string[] {
+export function matchSignatures(haystack: readonly string[], signatures: readonly Signature[]): string[] {
   const found = new Set<string>();
   for (const sig of signatures) {
     if (haystack.some((h) => sig.domains.some((d) => h.includes(d.toLowerCase())))) found.add(sig.name);
@@ -31,7 +31,7 @@ function matchSignatures(haystack: readonly string[], signatures: readonly Signa
   return [...found];
 }
 
-function collectUrls($: cheerio.CheerioAPI): string[] {
+export function collectUrls($: cheerio.CheerioAPI): string[] {
   const urls: string[] = [];
   $("*").each((_, el) => {
     // <script> and <style> elements have their own node types but still carry attributes.
@@ -49,21 +49,32 @@ function collectUrls($: cheerio.CheerioAPI): string[] {
   return urls;
 }
 
-function countFormFields($: cheerio.CheerioAPI): number | null {
-  let best: number | null = null;
+export interface NativeForm {
+  fields: number;
+  hasMessageBox: boolean;
+  hasPhoneField: boolean;
+}
+
+/** Native HTML forms that look like contact forms (not search boxes). */
+export function nativeContactForms($: cheerio.CheerioAPI): NativeForm[] {
+  const out: NativeForm[] = [];
   $("form").each((_, form) => {
     const $form = $(form);
     const inputs = $form.find("input").filter((_, el) => COUNTED_INPUT_TYPES.has(($(el).attr("type") ?? "").toLowerCase()));
     const fields = inputs.length + $form.find("textarea").length + $form.find("select").length;
+    const hasMessageBox = $form.find("textarea").length > 0;
+    const hasPhoneField = $form.find('input[type="tel"]').length > 0;
     const looksLikeContact =
-      fields >= 2 &&
-      ($form.find("textarea").length > 0 ||
-        $form.find('input[type="email"], input[type="tel"]').length > 0 ||
-        /name|phone|email|message/i.test($form.html() ?? ""));
+      fields >= 2 && (hasMessageBox || hasPhoneField || $form.find('input[type="email"]').length > 0 || /name|phone|email|message/i.test($form.html() ?? ""));
     const isSearch = ($form.attr("role") ?? "") === "search" || $form.find('input[type="search"]').length > 0;
-    if (looksLikeContact && !isSearch) best = best === null ? fields : Math.min(best, fields);
+    if (looksLikeContact && !isSearch) out.push({ fields, hasMessageBox, hasPhoneField });
   });
-  return best;
+  return out;
+}
+
+function countFormFields($: cheerio.CheerioAPI): number | null {
+  const forms = nativeContactForms($);
+  return forms.length ? Math.min(...forms.map((f) => f.fields)) : null;
 }
 
 function ctaNearTop($: cheerio.CheerioAPI): boolean {

@@ -5,10 +5,10 @@ import type { VisibilityScanRecord } from "../store";
 import { createToken } from "../tokens";
 import type { OutgoingEmail } from "./mailer";
 
-const escapeHtml = (s: string) =>
+export const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-interface Block {
+export interface Block {
   text: string;
   /** Optional link rendered as a button in HTML and a bare URL in text. */
   link?: { label: string; href: string };
@@ -18,9 +18,17 @@ function unsubscribeUrl(leadId: string): string {
   return `${config.siteUrl()}/unsubscribe?t=${encodeURIComponent(createToken("unsubscribe", leadId))}`;
 }
 
-function render(leadId: string, subject: string, blocks: Block[], marketing: boolean): Omit<OutgoingEmail, "to"> {
-  const unsub = unsubscribeUrl(leadId);
-  const footerText = `${BRAND.name} · ${config.mailingAddress()}\nYou're getting this because you used one of our free tools.\nUnsubscribe: ${unsub}`;
+/**
+ * Who the email is for decides its footer. Tool and marketing emails carry an
+ * unsubscribe link (marketing also gets one-click unsubscribe headers); transactional
+ * emails (receipts, test updates, reports) say why they were sent instead.
+ */
+export type Footer = { kind: "tool" | "marketing"; leadId: string } | { kind: "transactional"; reason: string };
+
+export function renderEmail(subject: string, blocks: Block[], footer: Footer): Omit<OutgoingEmail, "to"> {
+  const unsub = footer.kind === "transactional" ? null : unsubscribeUrl(footer.leadId);
+  const reason = footer.kind === "transactional" ? footer.reason : "You're getting this because you used one of our free tools.";
+  const footerText = [`${BRAND.name} · ${config.mailingAddress()}`, reason, ...(unsub ? [`Unsubscribe: ${unsub}`] : [])].join("\n");
   const text = [...blocks.map((b) => (b.link ? `${b.text}\n${b.link.label}: ${b.link.href}` : b.text)), "—", footerText].join("\n\n");
   const html = `<!doctype html><html><body style="margin:0;background:#f4f6f8;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1d2733">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
@@ -37,11 +45,13 @@ ${blocks
   .join("\n")}
 <tr><td style="border-top:1px solid #e3e8ee;padding-top:16px;font-size:12px;line-height:1.5;color:#5b6b7b">
 ${escapeHtml(BRAND.name)} · ${escapeHtml(config.mailingAddress())}<br>
-You're getting this because you used one of our free tools.<br>
-<a href="${escapeHtml(unsub)}" style="color:#5b6b7b">Unsubscribe</a></td></tr>
+${escapeHtml(reason)}${unsub ? `<br>\n<a href="${escapeHtml(unsub)}" style="color:#5b6b7b">Unsubscribe</a>` : ""}</td></tr>
 </table></td></tr></table></body></html>`;
-  return { subject, text, html, unsubscribeUrl: marketing ? unsub : undefined };
+  return { subject, text, html, unsubscribeUrl: footer.kind === "marketing" ? unsub! : undefined };
 }
+
+const render = (leadId: string, subject: string, blocks: Block[], marketing: boolean) =>
+  renderEmail(subject, blocks, { kind: marketing ? "marketing" : "tool", leadId });
 
 /** Sent after any email capture. Marketing email only starts after the confirm click (double opt-in). */
 export function confirmEmail(leadId: string, opts: { marketingConsent: boolean; scan?: VisibilityScanRecord & { id: string } }): Omit<OutgoingEmail, "to"> {
@@ -90,6 +100,13 @@ export function nurtureEmail(leadId: string, step: number): Omit<OutgoingEmail, 
         { text: "No real patient data is involved, and nothing is ever booked on your schedule.", link: { label: "See how it works", href: `${site}/secret-shopper` } },
       ], true);
     case 3:
+      if (config.shopperOpen()) {
+        return render(leadId, "See what happens when a new patient reaches out", [
+          { text: "The Secret Shopper is open for med spas, hormone and weight-loss clinics, dental practices, and chiropractic, PT, and wellness clinics." },
+          { text: "Three fictional new patients contact your clinic through your website and email. Two weeks later you get a graded report, your top three fixes, and scripts your front desk can use the same day.", link: { label: "Start a test", href: `${site}/secret-shopper` } },
+          { text: "Either way, thanks for reading. We'll keep the tips coming, and you can unsubscribe any time below." },
+        ], true);
+      }
       return render(leadId, "Want to be first in line for the Secret Shopper?", [
         { text: "The Secret Shopper is launching soon for med spas, hormone and weight-loss clinics, dental practices, and chiropractic, PT, and wellness clinics." },
         { text: "Join the waitlist and we'll let you know the day it opens, with launch pricing for early clinics.", link: { label: "Join the waitlist", href: `${site}/secret-shopper#waitlist` } },

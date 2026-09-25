@@ -132,7 +132,10 @@ export async function createLiteDb(dataDir?: string): Promise<Db> {
   return new LiteDb(copy as PGliteLike);
 }
 
-let dbPromise: Promise<Db> | undefined;
+// One database per process, kept on globalThis: Next.js can load this module once per
+// route bundle, and two PGlite instances on one data folder would each miss the
+// other's writes (and could corrupt it).
+const shared = globalThis as typeof globalThis & { __cgsDb?: Promise<Db> };
 
 /**
  * The app's database. Production uses DATABASE_URL (run `npm run migrate` on deploy).
@@ -140,17 +143,17 @@ let dbPromise: Promise<Db> | undefined;
  * set PGLITE_DIR to keep its data between restarts.
  */
 export function getDb(): Promise<Db> {
-  dbPromise ??= (async () => {
+  shared.__cgsDb ??= (async () => {
     const url = config.databaseUrl();
     if (url) return new PgDb(new pg.Pool({ connectionString: url, max: 5 }));
     return createLiteDb(process.env.PGLITE_DIR || undefined);
   })();
-  return dbPromise;
+  return shared.__cgsDb;
 }
 
 /** For tests. */
 export function setDb(db: Db) {
-  dbPromise = Promise.resolve(db);
+  shared.__cgsDb = Promise.resolve(db);
 }
 
 export const asBytes = (v: unknown): Uint8Array => (v instanceof Uint8Array ? v : new Uint8Array(v as ArrayBuffer));

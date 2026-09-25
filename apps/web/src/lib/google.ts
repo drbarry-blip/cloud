@@ -1,4 +1,5 @@
 import "server-only";
+import { guessTimezone, weeklyHoursFromGoogle, type GooglePeriod, type WeeklyHours } from "@cgs/core";
 
 // Google Places API (New) and PageSpeed Insights.
 // Google Maps Platform terms: don't store Places content (ratings, reviews, etc.)
@@ -102,6 +103,36 @@ export async function getPlaceDetails(key: string, placeId: string): Promise<Pla
     newestReviewAt: times.length ? new Date(Math.max(...times)) : null,
     mapsUri: p.googleMapsUri ?? null,
     businessStatus: p.businessStatus ?? null,
+  };
+}
+
+/** What the Secret Shopper setup form pre-fills. The owner confirms or edits every field. */
+export interface PlaceForSetup {
+  id: string;
+  name: string;
+  address: string;
+  website: string | null;
+  phone: string | null;
+  hours: WeeklyHours | null;
+  timezone: string | null;
+}
+
+export async function getPlaceForSetup(key: string, placeId: string): Promise<PlaceForSetup> {
+  if (!/^[A-Za-z0-9_-]{10,300}$/.test(placeId)) throw new GoogleApiError("Invalid place ID", 400);
+  const fields = ["id", "displayName", "formattedAddress", "websiteUri", "nationalPhoneNumber", "regularOpeningHours", "utcOffsetMinutes"];
+  const p = (await placesFetch(`/places/${encodeURIComponent(placeId)}`, key, fields.join(","))) as RawPlace & {
+    utcOffsetMinutes?: number;
+    regularOpeningHours?: { periods?: GooglePeriod[] };
+  };
+  const address = p.formattedAddress ?? "";
+  return {
+    id: p.id,
+    name: p.displayName?.text ?? "",
+    address,
+    website: p.websiteUri ?? null,
+    phone: p.nationalPhoneNumber ?? null,
+    hours: weeklyHoursFromGoogle(p.regularOpeningHours?.periods),
+    timezone: guessTimezone(address, p.utcOffsetMinutes ?? null),
   };
 }
 

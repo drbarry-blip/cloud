@@ -1,4 +1,4 @@
-export type LeadSource = "reply_checker" | "visibility_score" | "secret_shopper_waitlist";
+export type LeadSource = "reply_checker" | "visibility_score" | "secret_shopper_waitlist" | "secret_shopper";
 
 export interface Lead {
   id: string;

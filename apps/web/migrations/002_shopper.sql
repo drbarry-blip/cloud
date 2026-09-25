@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS orders (
   status TEXT NOT NULL DEFAULT 'pending',               -- pending | paid | refunded | cancelled
   stripe_session_id TEXT UNIQUE,
   stripe_payment_intent TEXT,
+  stripe_customer_id TEXT,
   stripe_invoice_id TEXT UNIQUE,
   subscription_id UUID REFERENCES subscriptions (id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

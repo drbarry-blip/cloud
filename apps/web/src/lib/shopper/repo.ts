@@ -58,6 +58,7 @@ export interface Order {
   status: "pending" | "paid" | "refunded" | "cancelled";
   stripeSessionId: string | null;
   stripePaymentIntent: string | null;
+  stripeCustomerId: string | null;
   stripeInvoiceId: string | null;
   subscriptionId: string | null;
   createdAt: Date;
@@ -296,6 +297,47 @@ export class ShopperRepo {
     return this.one("SELECT * FROM clinics WHERE id = $1", [id], toClinic);
   }
 
+  /** This owner's existing record for the same location, if any. */
+  findOwnClinic(ownerLeadId: string, loc: { placeId: string | null; websiteHost: string | null }) {
+    return this.one(
+      `SELECT * FROM clinics
+       WHERE owner_lead_id = $1 AND verification_status <> 'rejected'
+         AND ((place_id IS NOT NULL AND place_id = $2) OR (website_host IS NOT NULL AND website_host = $3))
+       ORDER BY (verification_status = 'verified') DESC, created_at DESC LIMIT 1`,
+      [ownerLeadId, loc.placeId, loc.websiteHost],
+      toClinic,
+    );
+  }
+
+  /** Replaces a clinic's details (not its owner or verification) with what the owner just confirmed. */
+  updateClinicDetails(id: string, c: NewClinic) {
+    return this.one(
+      `UPDATE clinics SET place_id = COALESCE($2, place_id), name = $3, address = $4, website = $5, website_host = $6, phone = $7,
+         public_email = $8, form_urls = $9, clinic_type = $10, services = $11, timezone = $12, hours = $13, blackout_dates = $14,
+         owner_standard = $15, booking_link = $16
+       WHERE id = $1 RETURNING *`,
+      [
+        id,
+        c.placeId,
+        c.name,
+        c.address,
+        c.website,
+        c.websiteHost,
+        c.phone,
+        c.publicEmail,
+        c.formUrls,
+        c.clinicType,
+        c.services,
+        c.timezone,
+        JSON.stringify(c.hours),
+        c.blackoutDates,
+        c.ownerStandard,
+        c.bookingLink,
+      ],
+      toClinic,
+    );
+  }
+
   clinicsForLead(leadId: string) {
     return this.many("SELECT * FROM clinics WHERE owner_lead_id = $1 ORDER BY created_at DESC", [leadId], toClinic);
   }
@@ -358,13 +400,17 @@ export class ShopperRepo {
   }
 
   /** Marks a pending order paid. Returns null if it was already paid (a retried webhook). */
-  markOrderPaid(id: string, p: { paidAt: Date; paymentIntent?: string | null; invoiceId?: string | null }) {
+  markOrderPaid(id: string, p: { paidAt: Date; paymentIntent?: string | null; invoiceId?: string | null; customerId?: string | null }) {
     return this.one<Order>(
       `UPDATE orders SET status = 'paid', paid_at = $2, stripe_payment_intent = COALESCE($3, stripe_payment_intent),
-         stripe_invoice_id = COALESCE($4, stripe_invoice_id)
+         stripe_invoice_id = COALESCE($4, stripe_invoice_id), stripe_customer_id = COALESCE($5, stripe_customer_id)
        WHERE id = $1 AND status = 'pending' RETURNING *`,
-      [id, p.paidAt, p.paymentIntent ?? null, p.invoiceId ?? null],
+      [id, p.paidAt, p.paymentIntent ?? null, p.invoiceId ?? null, p.customerId ?? null],
     );
+  }
+
+  ordersForClinic(clinicId: string) {
+    return this.many<Order>("SELECT * FROM orders WHERE clinic_id = $1 ORDER BY created_at DESC", [clinicId]);
   }
 
   setOrderStatus(id: string, status: Order["status"]) {
@@ -766,12 +812,14 @@ export class ShopperRepo {
     );
   }
 
-  async cancelOpenTasks(ref: { testId?: string; assignmentId?: string; type?: TaskType }, at: Date, reason: string) {
+  async cancelOpenTasks(ref: { testId?: string; assignmentId?: string; clinicId?: string; type?: TaskType }, at: Date, reason: string) {
+    if (!ref.testId && !ref.assignmentId && !ref.clinicId) throw new Error("cancelOpenTasks needs a test, assignment, or clinic");
     const { rows } = await this.db.query(
-      `UPDATE ops_tasks SET status = 'cancelled', completed_by = 'system', resolution = $4, completed_at = $5
-       WHERE status = 'open' AND ($1::uuid IS NULL OR test_id = $1) AND ($2::uuid IS NULL OR assignment_id = $2) AND ($3::text IS NULL OR type = $3)
+      `UPDATE ops_tasks SET status = 'cancelled', completed_by = 'system', resolution = $5, completed_at = $6
+       WHERE status = 'open' AND ($1::uuid IS NULL OR test_id = $1) AND ($2::uuid IS NULL OR assignment_id = $2)
+         AND ($3::uuid IS NULL OR clinic_id = $3) AND ($4::text IS NULL OR type = $4)
        RETURNING id`,
-      [ref.testId ?? null, ref.assignmentId ?? null, ref.type ?? null, reason, at],
+      [ref.testId ?? null, ref.assignmentId ?? null, ref.clinicId ?? null, ref.type ?? null, reason, at],
     );
     return rows.length;
   }

@@ -76,7 +76,7 @@ main { padding-top: 32px; }
 /* Forms */
 label { display: block; font-weight: 600; margin-bottom: 6px; }
 .hint { font-weight: 400; color: var(--muted); font-size: 0.88rem; }
-input[type="text"], input[type="email"], input[type="tel"], input[type="search"], select, textarea {
+input[type="text"], input[type="email"], input[type="tel"], input[type="search"], input[type="url"], input[type="date"], input[type="time"], input[type="number"], select, textarea {
   width: 100%; font: inherit; color: var(--ink); background: #fff; border: 1px solid #c9d3dd; border-radius: 10px; padding: 10px 12px; min-height: 44px;
 }
 textarea { min-height: 120px; resize: vertical; }
@@ -139,3 +139,30 @@ th { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.04em; colo
 .timeline li::before { content: ""; position: absolute; left: -8px; top: 14px; width: 12px; height: 12px; border-radius: 50%; background: var(--brand); }
 .timeline li.bad::before { background: var(--danger); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Multi-step forms */
+.steps { display: flex; gap: 6px; margin: 0 0 16px; padding: 0; list-style: none; }
+.steps li { flex: 1; height: 6px; border-radius: 999px; background: var(--line); }
+.steps li.done, .steps li.current { background: var(--brand); }
+.step-label { font-size: 0.85rem; color: var(--muted); margin: 0 0 4px; }
+.form-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 20px; }
+.hours-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.hours-row:last-child { border-bottom: 0; }
+.hours-row .day { width: 2.6em; font-weight: 600; }
+.hours-row .checkbox { margin: 0; align-items: center; }
+.hours-row .checkbox input { margin-top: 0; }
+.hours-row .times { display: flex; align-items: center; gap: 6px; flex: 1 1 230px; }
+.hours-row .times input { flex: 1; min-width: 0; padding: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.chips li { display: inline-flex; align-items: center; gap: 6px; background: var(--brand-soft); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 0.9rem; }
+.chips button { border: 0; background: transparent; color: var(--brand); font: inherit; font-weight: 700; cursor: pointer; min-width: 28px; min-height: 28px; border-radius: 999px; }
+.inline-add { display: flex; gap: 8px; }
+.inline-add input { flex: 1; min-width: 0; }
+.summary { margin: 0; padding: 0; list-style: none; }
+.summary li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.summary li:last-child { border-bottom: 0; }
+.status-steps { list-style: none; padding: 0; margin: 0; }
+.status-steps li { position: relative; padding: 0 0 14px 30px; }
+.status-steps li::before { content: ""; position: absolute; left: 6px; top: 6px; width: 12px; height: 12px; border-radius: 999px; background: var(--line); }
+.status-steps li.done::before { background: var(--ok); }
+.status-steps li.current::before { background: var(--accent); box-shadow: 0 0 0 4px var(--warn-soft); }

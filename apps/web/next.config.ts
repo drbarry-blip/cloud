@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@cgs/core"],
   serverExternalPackages: ["pg", "@electric-sql/pglite"],
   poweredByHeader: false,
+  // Don't write AGENTS.md / CLAUDE.md into the repo on `next dev`.
+  agentRules: false,
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

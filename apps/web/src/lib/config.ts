@@ -19,7 +19,9 @@ const env = (name: string): string | undefined => {
 
 const isProduction = () => process.env.NODE_ENV === "production";
 
-let devSecret: string | undefined;
+// Shared through globalThis: in development the bundler can load this module more than
+// once (once per route bundle), and every copy must sign links with the same secret.
+const devState = globalThis as typeof globalThis & { __cgsDevSecret?: string };
 
 export const config = {
   isProduction,
@@ -34,8 +36,8 @@ export const config = {
     const v = env("APP_SECRET");
     if (v) return v;
     if (isProduction()) throw new Error("APP_SECRET must be set in production");
-    devSecret ??= randomBytes(32).toString("hex");
-    return devSecret;
+    devState.__cgsDevSecret ??= randomBytes(32).toString("hex");
+    return devState.__cgsDevSecret;
   },
   /** Claude is used only when both a credential and a model are configured. */
   ai: () => {
@@ -74,6 +76,55 @@ export const config = {
     return { apiKey, from, replyTo: env("EMAIL_REPLY_TO") };
   },
   cronSecret: () => env("CRON_SECRET"),
+  /** Whether Secret Shopper orders are open. Always open in development; set SHOPPER_OPEN=true in production. */
+  shopperOpen: () => !isProduction() || env("SHOPPER_OPEN") === "true",
+  /** Stripe Checkout. Without it, development uses a simulated checkout page. */
+  stripe: () => {
+    const secretKey = env("STRIPE_SECRET_KEY");
+    const webhookSecret = env("STRIPE_WEBHOOK_SECRET");
+    if (!secretKey || !webhookSecret) {
+      warnOnce("stripe", "Stripe is not configured (STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET); checkout is simulated in development.");
+      return null;
+    }
+    return { secretKey, webhookSecret };
+  },
+  /** Domains that persona mailboxes live on (comma-separated). Reserved example domains in development. */
+  personaDomains: (): string[] => {
+    const v = env("PERSONA_EMAIL_DOMAINS");
+    if (v) return v.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);
+    if (isProduction()) throw new Error("PERSONA_EMAIL_DOMAINS must be set in production");
+    return ["personas.example.net"];
+  },
+  /** Email addresses allowed into the admin console, and those with the narrower VA role. */
+  staff: () => {
+    const list = (name: string) =>
+      (env(name) ?? "")
+        .split(",")
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean);
+    return { admins: list("ADMIN_EMAILS"), vas: list("VA_EMAILS") };
+  },
+  /** Where ops alerts go (new VA tasks that need a human, PHI flags). Defaults to the first admin. */
+  opsAlertEmail: () => env("OPS_ALERT_EMAIL"),
+  /** Twilio, for persona phone numbers (voicemail and texts in). */
+  twilio: () => {
+    const accountSid = env("TWILIO_ACCOUNT_SID");
+    const authToken = env("TWILIO_AUTH_TOKEN");
+    if (!accountSid || !authToken) {
+      warnOnce("twilio", "Twilio is not configured; persona phone numbers can't receive calls or texts.");
+      return null;
+    }
+    return { accountSid, authToken };
+  },
+  /** Shared secret that signs inbound email posted by the email worker. */
+  inboundEmailSecret: () => env("INBOUND_EMAIL_SECRET"),
+  /** A remote browser (CDP websocket) or a local Chromium, for submitting web forms. */
+  browser: () => {
+    const wsEndpoint = env("BROWSER_WS_ENDPOINT");
+    const executablePath = env("CHROMIUM_PATH");
+    if (!wsEndpoint && !executablePath) return null;
+    return { wsEndpoint, executablePath };
+  },
   plausibleDomain: () => env("PLAUSIBLE_DOMAIN"),
   limits: () => ({
     replyChecksPerDayAnonymous: Number(env("LIMIT_REPLY_CHECKS_ANON") ?? 5),
