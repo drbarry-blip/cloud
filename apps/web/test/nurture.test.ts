@@ -1,14 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { nurtureDueAt, runNurture } from "@/lib/email/nurture";
 import { confirmEmail, nurtureEmail } from "@/lib/email/templates";
-import { MemoryStore } from "@/lib/store/memory";
+import { createLiteDb } from "@/lib/db";
+import { SqlStore } from "@/lib/store/sql";
+
+const freshStore = async () => new SqlStore(await createLiteDb());
 
 afterEach(() => vi.restoreAllMocks());
 
 describe("nurture sequence", () => {
   it("sends each step when due, then stops after the last", async () => {
     const log = vi.spyOn(console, "info").mockImplementation(() => {});
-    const store = new MemoryStore();
+    const store = await freshStore();
     const lead = await store.upsertLead({ email: "Owner@Clinic.example", source: "visibility_score", marketingConsent: true });
     const confirmedAt = new Date("2026-09-25T00:00:00Z");
     await store.confirmLead(lead.id, confirmedAt);
@@ -25,7 +28,7 @@ describe("nurture sequence", () => {
 
   it("never emails unsubscribed or unconfirmed leads", async () => {
     vi.spyOn(console, "info").mockImplementation(() => {});
-    const store = new MemoryStore();
+    const store = await freshStore();
     const a = await store.upsertLead({ email: "a@example.com", source: "reply_checker", marketingConsent: true });
     await store.setNurture(a.id, 0, new Date(0)); // due, but never confirmed
     const b = await store.upsertLead({ email: "b@example.com", source: "reply_checker", marketingConsent: true });

@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   const playbook = getPlaybook();
   if (body.clinicType && !playbook.clinicTypes[body.clinicType]) return error(400, "Unknown clinic type.");
 
-  const store = getStore();
+  const store = await getStore();
   const leadId = verifyToken(body.leadToken, "lead");
   const limits = config.limits();
   const allowed = leadId

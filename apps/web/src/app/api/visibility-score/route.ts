@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   if (!playbook.clinicTypes[clinicType]) return error(400, "Pick a clinic type.");
   if (!(await verifyTurnstile(turnstileToken, ip))) return error(403, "Please complete the check that you're human, then try again.");
 
-  const store = getStore();
+  const store = await getStore();
   const limits = config.limits();
   if (!(await takeDaily(store, "visibility:ip", ip, limits.visibilityScoresPerDayPerIp))) {
     return error(429, "You've run today's free scores. Please come back tomorrow.");

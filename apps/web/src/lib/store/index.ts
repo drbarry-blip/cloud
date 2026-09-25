@@ -1,18 +1,15 @@
 import "server-only";
-import { config } from "../config";
-import { MemoryStore } from "./memory";
-import { PostgresStore } from "./postgres";
+import { getDb } from "../db";
+import { SqlStore } from "./sql";
 import type { Store } from "./types";
 
 export type * from "./types";
 
 let store: Store | undefined;
 
-export function getStore(): Store {
-  if (!store) {
-    const url = config.databaseUrl();
-    store = url ? PostgresStore.fromUrl(url) : new MemoryStore();
-  }
+/** Phase 1 store on the app database (Postgres in production, PGlite locally). */
+export async function getStore(): Promise<Store> {
+  store ??= new SqlStore(await getDb());
   return store;
 }
 

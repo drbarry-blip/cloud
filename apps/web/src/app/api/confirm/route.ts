@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   if ("response" in parsed) return parsed.response;
   const leadId = verifyToken(parsed.data.token, "confirm");
   if (!leadId) return error(400, "This confirmation link is invalid or has expired.");
-  const store = getStore();
+  const store = await getStore();
   const lead = await store.confirmLead(leadId, new Date());
   if (!lead) return error(404, "We couldn't find that sign-up.");
   if (lead.marketingConsent && !lead.unsubscribedAt && lead.nurtureStep === 0 && !lead.nurtureNextAt && lead.confirmedAt) {

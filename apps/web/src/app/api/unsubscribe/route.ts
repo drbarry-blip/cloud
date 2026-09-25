@@ -15,6 +15,6 @@ export async function POST(request: Request) {
   }
   const leadId = verifyToken(token, "unsubscribe");
   if (!leadId) return error(400, "This unsubscribe link is invalid.");
-  await getStore().unsubscribeLead(leadId, new Date());
+  await (await getStore()).unsubscribeLead(leadId, new Date());
   return json({ ok: true });
 }

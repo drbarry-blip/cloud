@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   if ("response" in parsed) return parsed.response;
   const key = config.googleMapsKey();
   if (!key) return error(503, "The Visibility Score isn't configured yet (missing Google API key).");
-  if (!(await takeDaily(getStore(), "places-search:ip", clientIp(request), 30))) return error(429, "Too many searches today. Please try again tomorrow.");
+  if (!(await takeDaily(await getStore(), "places-search:ip", clientIp(request), 30))) return error(429, "Too many searches today. Please try again tomorrow.");
   try {
     const places = await searchPlaces(key, parsed.data.query, { pageSize: 5 });
     return json({ places: places.map((p) => ({ id: p.id, name: p.name, address: p.address })) });

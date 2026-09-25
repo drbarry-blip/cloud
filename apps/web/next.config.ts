@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   // The monorepo root, so the standalone build traces the shared core package.
   outputFileTracingRoot: repoRoot,
   transpilePackages: ["@cgs/core"],
-  serverExternalPackages: ["pg"],
+  serverExternalPackages: ["pg", "@electric-sql/pglite"],
   poweredByHeader: false,
   async headers() {
     return [

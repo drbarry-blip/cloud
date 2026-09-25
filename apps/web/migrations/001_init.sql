@@ -3,7 +3,7 @@
 --   * reply_checks never stores the pasted text, only the verdict and flag categories.
 --   * visibility_scans stores our computed scores, never Google's ratings or reviews.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- gen_random_uuid() is built into Postgres 13+; no extension needed.
 
 CREATE TABLE IF NOT EXISTS schema_migrations (
   name TEXT PRIMARY KEY,

@@ -11,5 +11,5 @@ export async function POST(request: Request) {
   const given = Buffer.from(request.headers.get("authorization") ?? "");
   const expected = Buffer.from(`Bearer ${secret}`);
   if (given.length !== expected.length || !timingSafeEqual(given, expected)) return error(401, "Unauthorized.");
-  return json(await runNurture(getStore()));
+  return json(await runNurture(await getStore()));
 }

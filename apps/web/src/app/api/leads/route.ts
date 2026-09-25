@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const parsed = await parseBody(request, Body, 2000);
   if ("response" in parsed) return parsed.response;
   const { email, source, marketingConsent, scanId } = parsed.data;
-  const store = getStore();
+  const store = await getStore();
 
   if (!(await takeDaily(store, "leads:ip", clientIp(request), config.limits().leadsPerDayPerIp))) {
     return error(429, "Too many sign-ups from this connection today.");
