@@ -1,5 +1,5 @@
 import "server-only";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { signTimestampedPayload, verifyTimestampedSignature } from "./signing";
 
 // A small Stripe client over the REST API: Checkout, refunds, the customer portal,
 // and webhook signature checks. Field reads accept both older and newer API
@@ -105,30 +105,10 @@ export function stripeClient(secretKey: string, fetchImpl: typeof fetch = fetch)
   };
 }
 
-/**
- * Checks a Stripe-Signature header (t=...,v1=...) against the raw request body.
- * Rejects signatures older than `toleranceSeconds` to stop replays.
- */
-export function verifyStripeSignature(payload: string, header: string | null, secret: string, nowSeconds = Date.now() / 1000, toleranceSeconds = 300): boolean {
-  if (!header) return false;
-  const pairs = header.split(",").map((p) => {
-    const i = p.indexOf("=");
-    return [p.slice(0, i).trim(), p.slice(i + 1).trim()] as const;
-  });
-  const t = pairs.find(([k]) => k === "t")?.[1];
-  const signatures = pairs.filter(([k]) => k === "v1").map(([, v]) => v);
-  if (!t || !/^\d+$/.test(t) || signatures.length === 0 || Math.abs(nowSeconds - Number(t)) > toleranceSeconds) return false;
-  const expected = Buffer.from(createHmac("sha256", secret).update(`${t}.${payload}`).digest("hex"));
-  return signatures.some((s) => {
-    const given = Buffer.from(s);
-    return given.length === expected.length && timingSafeEqual(given, expected);
-  });
-}
-
+/** Checks a Stripe-Signature header against the raw body; rejects old signatures to stop replays. */
+export const verifyStripeSignature = verifyTimestampedSignature;
 /** For tests and local tooling: a valid signature header for a payload. */
-export function signStripePayload(payload: string, secret: string, nowSeconds = Math.floor(Date.now() / 1000)): string {
-  return `t=${nowSeconds},v1=${createHmac("sha256", secret).update(`${nowSeconds}.${payload}`).digest("hex")}`;
-}
+export const signStripePayload = signTimestampedPayload;
 
 // ---------- Reading webhook objects across API versions ----------
 

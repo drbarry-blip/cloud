@@ -1,4 +1,5 @@
 import "server-only";
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 
@@ -41,3 +42,12 @@ export async function parseBody<S extends z.ZodType>(request: Request, schema: S
 }
 
 export const today = (now = new Date()) => now.toISOString().slice(0, 10);
+
+/** Checks `Authorization: Bearer $CRON_SECRET`. Returns an error response, or null when allowed. */
+export function cronAuthError(request: Request, secret: string | undefined): NextResponse | null {
+  if (!secret) return error(503, "CRON_SECRET is not configured.");
+  const given = Buffer.from(request.headers.get("authorization") ?? "");
+  const expected = Buffer.from(`Bearer ${secret}`);
+  if (given.length !== expected.length || !timingSafeEqual(given, expected)) return error(401, "Unauthorized.");
+  return null;
+}

@@ -2,10 +2,14 @@ import "server-only";
 import type { Playbook } from "@cgs/core";
 import { config } from "../config";
 import { getDb } from "../db";
-import { sendEmail, type OutgoingEmail } from "../email/mailer";
+import { sendEmail, type OutgoingEmail, type SentEmail } from "../email/mailer";
 import { getPlaybook } from "../playbook";
 import { getStore, type Store } from "../store";
 import { stripeClient, type StripeClient } from "../stripe";
+import { aiDraftReply, aiJudge } from "./ai";
+import { playwrightFormBot, type FormBot } from "./form-bot";
+import type { AiJudge } from "./grade";
+import type { AiDraft } from "./persona-reply";
 import { ShopperRepo } from "./repo";
 
 /** Everything the Secret Shopper workflows touch, injectable for tests. */
@@ -14,7 +18,7 @@ export interface ShopperDeps {
   store: Store;
   playbook: Playbook;
   now: () => Date;
-  sendEmail: (m: OutgoingEmail) => Promise<void>;
+  sendEmail: (m: OutgoingEmail) => Promise<SentEmail | void>;
   stripe: StripeClient | null;
   personaDomains: () => string[];
   siteUrl: string;
@@ -22,10 +26,16 @@ export interface ShopperDeps {
   allowSimulatedCheckout: boolean;
   /** Where to send alerts about new ops tasks; null logs them instead. */
   opsEmail: string | null;
+  /** Submits web forms; null sends every form to a VA. */
+  formBot?: FormBot | null;
+  /** Claude, when configured: judges conversation quality and drafts persona replies. */
+  aiJudge?: AiJudge | null;
+  aiDraft?: AiDraft | null;
 }
 
 export async function liveShopperDeps(): Promise<ShopperDeps> {
   const stripe = config.stripe();
+  const browser = config.browser();
   return {
     repo: new ShopperRepo(await getDb()),
     store: await getStore(),
@@ -37,6 +47,9 @@ export async function liveShopperDeps(): Promise<ShopperDeps> {
     siteUrl: config.siteUrl(),
     allowSimulatedCheckout: !config.isProduction(),
     opsEmail: config.opsAlertEmail() ?? config.staff().admins[0] ?? null,
+    formBot: browser ? playwrightFormBot(browser) : null,
+    aiJudge: aiJudge(),
+    aiDraft: aiDraftReply(),
   };
 }
 

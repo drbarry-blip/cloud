@@ -1,0 +1,11 @@
+name = "cgs-inbound-email"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# The app's inbound endpoint.
+INBOUND_URL = "https://YOUR-APP-DOMAIN/api/inbound/email"
+# Optional: a verified mailbox that gets a copy if the app can't be reached.
+FALLBACK_ADDRESS = ""
+
+# Set the shared secret with: npx wrangler secret put INBOUND_EMAIL_SECRET

@@ -99,14 +99,28 @@ ${found}
 
 let client: Anthropic | undefined;
 
-/** Returns a reviewer backed by Claude, or null when AI isn't configured. */
-export function claudeReviewer(): AiReviewer | null {
+/** The shared Claude client and settings, or null when AI isn't configured. */
+export function claude(): { client: Anthropic; model: string; effort?: "low" | "medium" | "high" } | null {
   const ai = config.ai();
   if (!ai) return null;
-  client ??= new Anthropic({ timeout: 45_000, maxRetries: 1 });
+  client ??= new Anthropic({ timeout: 60_000, maxRetries: 1 });
+  return { client, model: ai.model, effort: ai.effort };
+}
+
+/** Logs an AI failure by type only; never the text involved. */
+export function logAiError(what: string, err: unknown) {
+  if (err instanceof Anthropic.RateLimitError) console.warn(`[ai] ${what}: rate limited`);
+  else if (err instanceof Anthropic.APIError) console.warn(`[ai] ${what}: API error ${err.status}`);
+  else console.warn(`[ai] ${what} failed:`, (err as Error).name);
+}
+
+/** Returns a reviewer backed by Claude, or null when AI isn't configured. */
+export function claudeReviewer(): AiReviewer | null {
+  const ai = claude();
+  if (!ai) return null;
   return async (input, rules) => {
     try {
-      const response = await client!.messages.parse({
+      const response = await ai.client.messages.parse({
         model: ai.model,
         max_tokens: 16_000,
         system: [{ type: "text", text: buildSystemPrompt(rules), cache_control: { type: "ephemeral" } }],
@@ -119,10 +133,7 @@ export function claudeReviewer(): AiReviewer | null {
       }
       return response.parsed_output ?? null;
     } catch (err) {
-      // Log the error type only; never the pasted text.
-      if (err instanceof Anthropic.RateLimitError) console.warn("[ai] rate limited");
-      else if (err instanceof Anthropic.APIError) console.warn(`[ai] API error ${err.status}`);
-      else console.warn("[ai] reply review failed:", (err as Error).name);
+      logAiError("reply review", err);
       return null;
     }
   };

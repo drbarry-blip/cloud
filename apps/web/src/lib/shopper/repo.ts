@@ -726,6 +726,10 @@ export class ShopperRepo {
     );
   }
 
+  inboundByExternalId(externalId: string) {
+    return this.one<InboundEvent>("SELECT * FROM inbound_events WHERE external_id = $1", [externalId]);
+  }
+
   getInbound(id: string) {
     return this.one<InboundEvent>("SELECT * FROM inbound_events WHERE id = $1", [id]);
   }

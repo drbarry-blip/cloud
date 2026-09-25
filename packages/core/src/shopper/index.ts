@@ -4,3 +4,4 @@ export * from "./grading";
 export * from "./personas";
 export * from "./time";
 export * from "./clinic-setup";
+export * from "./inbound";

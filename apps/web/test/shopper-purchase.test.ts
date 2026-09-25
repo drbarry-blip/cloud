@@ -1,7 +1,5 @@
 import { DEFAULT_HOURS, SCRIPTS } from "@cgs/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createLiteDb } from "@/lib/db";
-import type { OutgoingEmail } from "@/lib/email/mailer";
 import { getPlaybook } from "@/lib/playbook";
 import type { ShopperDeps } from "@/lib/shopper/deps";
 import {
@@ -15,69 +13,13 @@ import {
   StartOrderSchema,
   type StartOrderInput,
 } from "@/lib/shopper/purchase";
-import { ShopperRepo } from "@/lib/shopper/repo";
 import { chooseRoutes, scheduleTest } from "@/lib/shopper/schedule";
 import { handleStripeEvent } from "@/lib/shopper/stripe-events";
-import { SqlStore } from "@/lib/store/sql";
 import type { StripeClient } from "@/lib/stripe";
 import { verifyToken } from "@/lib/tokens";
-
-const NOW = new Date("2026-10-05T15:00:00Z"); // a Monday, 10 am in Austin
-const HOUR = 3_600_000;
+import { HOUR, linkIn, makeDeps, NOW, orderInput, placeOrder, tokenFrom } from "./shopper-helpers";
 
 afterEach(() => vi.restoreAllMocks());
-
-async function makeDeps(over: Partial<ShopperDeps> = {}) {
-  vi.spyOn(console, "info").mockImplementation(() => {});
-  const db = await createLiteDb();
-  const sent: OutgoingEmail[] = [];
-  const deps: ShopperDeps = {
-    repo: new ShopperRepo(db),
-    store: new SqlStore(db),
-    playbook: getPlaybook(),
-    now: () => NOW,
-    sendEmail: async (m) => void sent.push(m),
-    stripe: null,
-    personaDomains: () => ["personas.example.net"],
-    siteUrl: "https://app.example",
-    allowSimulatedCheckout: true,
-    opsEmail: "ops@us.example",
-    ...over,
-  };
-  return { deps, sent, repo: deps.repo };
-}
-
-function orderInput(over: { email?: string; clinic?: Partial<StartOrderInput["clinic"]> } = {}): StartOrderInput {
-  return StartOrderSchema.parse({
-    email: over.email ?? "owner@glowclinic.example",
-    marketingConsent: false,
-    clinic: {
-      placeId: "ChIJglowclinic123",
-      name: "Glow Clinic",
-      address: "1 Main St, Austin, TX 78701, USA",
-      website: "https://www.glowclinic.example/",
-      phone: "(512) 555-0100",
-      publicEmail: "hello@glowclinic.example",
-      formUrls: ["https://www.glowclinic.example/contact"],
-      clinicType: "med_spa",
-      services: ["neurotoxin", "filler", "laser_hair_removal"],
-      timezone: "America/Chicago",
-      hours: DEFAULT_HOURS,
-      blackoutDates: [],
-      ...over.clinic,
-    },
-    authorizations: { ownsClinic: true, authorizesInquiries: true, willDeleteLeads: true },
-  });
-}
-
-const tokenFrom = (url: string) => decodeURIComponent(new URL(url).searchParams.get("t")!);
-const linkIn = (email: OutgoingEmail, path: string) => new RegExp(`https://app\\.example${path}\\?t=[^\\s]+`).exec(email.text)![0];
-
-async function placeOrder(deps: ShopperDeps, input = orderInput()) {
-  const res = await startBaselineOrder(deps, input);
-  if (!res.ok) throw new Error(res.message);
-  return res;
-}
 
 describe("starting an order", () => {
   it("returns a simulated checkout in development, with an unpaid order and test", async () => {

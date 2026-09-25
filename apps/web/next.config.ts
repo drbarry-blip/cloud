@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   // The monorepo root, so the standalone build traces the shared core package.
   outputFileTracingRoot: repoRoot,
   transpilePackages: ["@cgs/core"],
-  serverExternalPackages: ["pg", "@electric-sql/pglite"],
+  serverExternalPackages: ["pg", "@electric-sql/pglite", "playwright-core"],
   poweredByHeader: false,
   // Don't write AGENTS.md / CLAUDE.md into the repo on `next dev`.
   agentRules: false,
