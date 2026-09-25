@@ -1,0 +1,77 @@
+# Templates in each Secret Shopper report's "fix-it kit". Clinics copy these,
+# so this is where your voice matters most. Owner's choice (2026-09-25): warm and friendly.
+# TODO(owner): edit the wording itself wherever it doesn't sound like your best front-desk person.
+#
+# Words in {curly_braces} are filled in automatically:
+#   {patient_first_name}  {staff_name}  {clinic_name}  {callback_number}  {booking_link}
+#   {service_phrase}  - the service name, or "your consultation request" for sensitive services
+#   {slot_1} {slot_2} - two real open appointment times
+# These are written per clinic by the AI, using the clinic's own answers and the
+# clinic-type file's price_factor and smaller_option:
+#   {answer_to_their_question}  {price_or_range}  {price_factor}  {lower_cost_option_or_payment_plan}
+
+call_opener: |
+  Hi {patient_first_name}, this is {staff_name} from {clinic_name}. You reached out about {service_phrase}.
+  Is now a good time for a couple of quick questions so I can get you scheduled?
+
+voicemail: |
+  Hi {patient_first_name}, this is {staff_name} from {clinic_name} getting back to you about {service_phrase}.
+  I'd love to help you find a time. Call or text me at {callback_number}, or book online at {booking_link}.
+  Again, that's {callback_number}. Talk soon!
+
+text_message: |
+  Hi {patient_first_name}, it's {staff_name} at {clinic_name}. Thanks for reaching out!
+  I have {slot_1} or {slot_2} open. Want one of those? You can also book here: {booking_link}
+
+first_email: |
+  Subject: Your request to {clinic_name}
+
+  Hi {patient_first_name},
+
+  Thanks for reaching out about {service_phrase}. {answer_to_their_question}
+
+  I have {slot_1} or {slot_2} available. Just reply with the one that works, or book any open time here: {booking_link}
+
+  Questions? Call or text me at {callback_number}.
+
+  {staff_name}
+  {clinic_name}
+
+after_hours_auto_reply: |
+  Thanks for contacting {clinic_name}! We're closed right now, but a real person will reach out
+  first thing when we open. Want to skip the wait? Book any open time here: {booking_link}
+
+price_question_reply: |
+  Great question! {price_or_range}. The exact price depends on {price_factor}, which we confirm at your visit.
+  Want me to hold {slot_1} or {slot_2} for you?
+
+price_objection_reply: |
+  Totally understand, and thanks for being upfront. {lower_cost_option_or_payment_plan}
+  Would it help if I walked you through the options on a quick call?
+
+final_email: |
+  Subject: Should I stop reaching out?
+
+  Hi {patient_first_name}, I've tried to reach you a few times about {service_phrase} and don't want to be a bother.
+  If you're still interested, book any time here: {booking_link}, or just reply "later" and I'll check back next month.
+
+  {staff_name}, {clinic_name}
+
+# The 10-day follow-up cadence recommended in every report.
+# Owner confirmed (2026-09-25): keep the full ~10-touch schedule.
+cadence:
+  - { day: 0, when: "Within 1 hour (sooner is better)", actions: ["call", "voicemail if no answer", "text (with consent)", "first email"] }
+  - { day: 0, when: "2-3 hours later",  actions: ["call"] }
+  - { day: 1, actions: ["call", "text (with consent)"] }
+  - { day: 2, actions: ["email with helpful info (FAQs, pricing, what to expect)"] }
+  - { day: 4, actions: ["call", "voicemail"] }
+  - { day: 6, actions: ["text (with consent)"] }
+  - { day: 8, actions: ["call"] }
+  - { day: 10, actions: ["final email"] }
+
+front_desk_tips:
+  - "Call web-form leads first, within the hour. The sooner you call, the more likely they still remember reaching out."
+  - "Log every attempt, so whoever picks up the next shift knows where each lead stands."
+  - "Set up an after-hours auto-reply with a booking link; it's the cheapest speed win."
+  - "Keep voicemails and texts free of health details, and generic for sensitive services."
+  - "Ask for the appointment on every touch. 'Let us know if you have questions' isn't a next step."

@@ -1,0 +1,31 @@
+# Location Report scoring and defaults. See SPEC.md §7.4.
+# Benchmarks are blank on purpose: the spec forbids invented statistics.
+# Fill them in only from real data or your own experience (TODO(owner)).
+
+trade_area_radius_miles:        # suggested by population density; the buyer can adjust
+  urban: 3
+  suburban: 7
+  rural: 15
+
+opportunity_score_weights:      # must add up to 100; clinic-type files can override
+  demand: 35
+  competition_gap: 30
+  affluence: 20
+  growth: 15
+
+beatable_competitor:            # a competitor counts as "beatable" if any of these is true
+  rating_below: 4.3
+  reviews_below: 50
+  no_online_booking: true
+  pagespeed_mobile_below: 50
+
+benchmarks:                     # TODO(owner): per clinic type, where you have real numbers
+  target_patients_per_clinic: null      # residents in the target group needed to support one clinic
+  healthy_competitor_density: null      # competitors per 10,000 target residents
+  notes: "Until filled in, the report compares against state and national figures computed from Census and NPPES data."
+
+narrative_rules:
+  - "Use only the data in the report and the owner's market notes. Never invent statistics."
+  - "Show every assumption next to the number it affects."
+  - "Cover: who to target, positioning, pricing stance, a first-90-days patient-acquisition plan, and risks."
+  - "End with the clinic type's attorney and accountant questions. They're a checklist, not legal advice."

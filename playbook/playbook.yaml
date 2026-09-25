@@ -1,0 +1,23 @@
+# Playbook manifest.
+# Every Secret Shopper test, Visibility Score, and Location Report records the
+# version below, so any result can be traced back to the rules that produced it.
+
+version: "0.2.0-draft"
+status: draft            # draft | approved  (set to approved once you've reviewed it)
+last_updated: "2026-09-25"
+written_by: "Claude (draft from common industry practice); owner decisions applied for speed, after-hours, persistence, script voice, score weights, price grading, cadence, and hormone services"
+
+shared:
+  response_standards: shared/response-standards.yaml
+  secret_shopper_rubric: shared/secret-shopper-rubric.yaml
+  persona_rules: shared/persona-rules.yaml
+  fix_it_scripts: shared/fix-it-scripts.yaml
+  visibility_score: shared/visibility-score.yaml
+  review_reply_rules: shared/review-reply-rules.yaml
+  location_report: shared/location-report.yaml
+
+clinic_types:
+  med_spa: clinic-types/med-spa.yaml
+  hormone_weight_loss: clinic-types/hormone-weight-loss.yaml
+  dental: clinic-types/dental.yaml
+  chiro_pt_wellness: clinic-types/chiro-pt-wellness.yaml

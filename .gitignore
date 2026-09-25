@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local secrets
+.env
+.env.local
+.env.*.local
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,129 @@
+# Visibility Score weights and thresholds. Defaults come from SPEC.md Appendix B.
+# Total = 100: reputation 40 + booking ease 30 + website speed 20 + profile completeness 10.
+# If a signal can't be measured (e.g., Google returns no review dates), it's dropped and the rest re-weighted.
+
+competitors:
+  search_terms_from: "clinic-types/*.yaml -> competitor_search_terms"
+  min_results: 5
+  keep_top: 10
+  start_radius_miles: 5
+  max_radius_miles: 25
+
+pillars:
+  reputation:
+    max_points: 40
+    signals:
+      rating_vs_median:
+        max_points: 15
+        bands:
+          - { label: "0.2+ stars above the local median", min_diff: 0.2,   points: 15 }
+          - { label: "Within 0.2 of the median",          min_diff: -0.2,  points: 10 }
+          - { label: "0.2-0.5 below the median",          min_diff: -0.5,  points: 5 }
+          - { label: "More than 0.5 below",               min_diff: null,  points: 0 }
+      review_count_vs_competitors:
+        max_points: 15
+        bands:
+          - { label: "Top quarter",    min_percentile: 75, points: 15 }
+          - { label: "Above median",   min_percentile: 50, points: 11 }
+          - { label: "Below median",   min_percentile: 25, points: 7 }
+          - { label: "Bottom quarter", min_percentile: 0,  points: 3 }
+        no_reviews_points: 0
+      newest_review_age:
+        max_points: 10
+        bands:
+          - { label: "Within 14 days", max_days: 14,   points: 10 }
+          - { label: "Within 30 days", max_days: 30,   points: 7 }
+          - { label: "Within 90 days", max_days: 90,   points: 4 }
+          - { label: "Older",          max_days: null, points: 0 }
+
+  booking_ease:
+    max_points: 30
+    signals:
+      online_booking_detected: 10
+      tap_to_call_on_mobile: 5
+      short_contact_form: 5            # 5 or fewer fields, or online booking present
+      text_or_chat_option: 5
+      new_patient_button_above_fold: 5 # visible on a phone screen without scrolling
+    short_form_max_fields: 5
+
+  website_speed:
+    max_points: 20
+    signals:
+      pagespeed_mobile:
+        max_points: 10
+        bands:
+          - { label: "90+",      min_score: 90, points: 10 }
+          - { label: "50-89",    min_score: 50, points: 6 }
+          - { label: "Under 50", min_score: 0,  points: 2 }
+      core_web_vitals:
+        max_points: 5
+        pass_points: 5
+        no_field_data_fallback: { lab_load_seconds_max: 2.5, points: 3 }
+      https_and_mobile_layout: 5
+
+  profile_completeness:
+    max_points: 10
+    signals:
+      hours_listed: 3
+      website_linked: 2
+      phone_listed: 2
+      photos_5_or_more: 3
+
+# Known online-booking tools, detected by the domains their widgets load from.
+# TODO(build): confirm each signature against a live clinic site before relying on it.
+booking_tool_signatures:
+  - { name: "Vagaro",            domains: ["vagaro.com"] }
+  - { name: "Mindbody",          domains: ["mindbodyonline.com"] }
+  - { name: "Boulevard",         domains: ["joinblvd.com", "blvd.co"] }
+  - { name: "Jane",              domains: ["janeapp.com"] }
+  - { name: "Zocdoc",            domains: ["zocdoc.com"] }
+  - { name: "NexHealth",         domains: ["nexhealth.com"] }
+  - { name: "Calendly",          domains: ["calendly.com"] }
+  - { name: "Acuity Scheduling", domains: ["acuityscheduling.com", "as.me"] }
+  - { name: "Square Appointments", domains: ["squareup.com/appointments", "square.site"] }
+  - { name: "Zenoti",            domains: ["zenoti.com"] }
+  - { name: "Mangomint",         domains: ["mangomint.com"] }
+  - { name: "GlossGenius",       domains: ["glossgenius.com"] }
+  - { name: "IntakeQ",           domains: ["intakeq.com"] }
+  - { name: "Practice Better",   domains: ["practicebetter.io"] }
+  - { name: "LocalMed",          domains: ["localmed.com"] }
+
+# Text and chat widgets, detected the same way. TODO(build): confirm against live sites.
+chat_widget_signatures:
+  - { name: "Podium",       domains: ["podium.com"] }
+  - { name: "Birdeye",      domains: ["birdeye.com"] }
+  - { name: "Weave",        domains: ["getweave.com"] }
+  - { name: "Tawk.to",      domains: ["tawk.to"] }
+  - { name: "Intercom",     domains: ["intercom.io", "intercomcdn.com"] }
+  - { name: "Drift",        domains: ["drift.com", "driftt.com"] }
+  - { name: "LiveChat",     domains: ["livechatinc.com"] }
+  - { name: "Tidio",        domains: ["tidio.co", "tidiochat.com"] }
+  - { name: "HubSpot chat", domains: ["usemessages.com"] }
+  - { name: "Crisp",        domains: ["crisp.chat"] }
+
+# Contact forms embedded from these services can't be field-counted from the page itself.
+embedded_form_signatures:
+  - { name: "Jotform",      domains: ["jotform.com"] }
+  - { name: "HubSpot forms", domains: ["hsforms.net", "hsforms.com"] }
+  - { name: "Typeform",     domains: ["typeform.com"] }
+  - { name: "Wufoo",        domains: ["wufoo.com"] }
+  - { name: "Formstack",    domains: ["formstack.com"] }
+  - { name: "Google Forms", domains: ["docs.google.com/forms", "forms.gle"] }
+
+# The free score uses these pre-written quick wins (no AI), picked from the weakest signals.
+quick_wins:
+  rating_vs_median: "Your rating trails nearby competitors. Reply to every review and fix the issues that come up most."
+  core_web_vitals: "Your site feels slow to real visitors on phones. Ask your web person to fix loading and layout shifts."
+  https_and_mobile_layout: "Make sure your site uses HTTPS and a mobile-friendly layout. Browsers warn visitors about insecure sites."
+  website_linked: "Add your website link to your Google Business Profile."
+  phone_listed: "Add your phone number to your Google Business Profile."
+  online_booking_detected: "Add online booking. Patients who can book at 10 pm won't wait until you open."
+  tap_to_call_on_mobile: "Make your phone number tappable on mobile so one tap starts a call."
+  short_contact_form: "Cut your contact form to 5 fields or fewer: name, phone, email, service, message."
+  text_or_chat_option: "Offer a text or chat option. Many patients would rather text than call."
+  new_patient_button_above_fold: "Put a 'Book your first visit' button at the top of your homepage on mobile."
+  newest_review_age: "Ask happy patients for reviews every week. Recent reviews matter to searchers."
+  review_count_vs_competitors: "You have fewer reviews than nearby competitors. Start a simple review-request routine."
+  pagespeed_mobile: "Your site loads slowly on phones. Ask your web person to compress images and remove unused plugins."
+  hours_listed: "Add your hours to your Google Business Profile."
+  photos_5_or_more: "Add at least 5 recent photos to your Google Business Profile: team, lobby, treatment rooms."

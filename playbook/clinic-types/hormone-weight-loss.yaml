@@ -1,0 +1,85 @@
+# Clinic type: hormone & weight loss (TRT, menopause hormone therapy, medical weight loss)
+# Every service here is marked sensitive: voicemails and texts stay generic.
+# Services confirmed by owner (2026-09-25): TRT, menopause hormone therapy, medical weight loss.
+# TODO(owner): review the messages, questions, objections, and market_notes; this is likely closest to your expertise.
+
+id: hormone_weight_loss
+name: "Hormone & weight loss"
+
+services:
+  - id: trt
+    name: "Testosterone replacement therapy (TRT)"
+    sensitive: true
+    persona_sex: male
+    price_factor: "your lab results and the treatment plan your provider recommends"
+    smaller_option: "starting with just the consult and labs"
+  - id: menopause_hormone_therapy
+    name: "Menopause / perimenopause hormone therapy"
+    sensitive: true
+    persona_sex: female
+    price_factor: "your labs and the plan your provider recommends"
+    smaller_option: "starting with just the consult and labs"
+  - id: medical_weight_loss
+    name: "Medical weight-loss program"
+    sensitive: true
+    price_factor: "the program and medication your provider recommends"
+    smaller_option: "a month-to-month plan instead of a package"
+
+persona_inquiries:
+  - { service: trt, script: silent, message: "Hi, I'm interested in learning about testosterone therapy. How does your program work, and what does it cost per month?" }
+  - { service: trt, script: price_check, message: "Hey, what's the monthly price for your TRT program? Are labs included?" }
+  - { service: menopause_hormone_therapy, script: engaged, message: "Hi, I'm looking into hormone therapy for menopause. Do you offer consultations, and can the first one be done by telehealth?" }
+  - { service: medical_weight_loss, script: silent, message: "Hello, I'm interested in your medical weight loss program. What's included and how soon could I get started?" }
+  - { service: medical_weight_loss, script: price_check, message: "Hi, how much is your weight loss program per month? Do you take insurance?" }
+
+follow_up_questions:
+  - "Are labs included in the price, or separate?"
+  - "Do you take insurance, or is it cash only?"
+  - "Can visits be done by telehealth?"
+  - "How soon after the first visit could I start?"
+  - "Is there a contract, or is it month to month?"
+
+price_objections:
+  - "That's more per month than I was expecting."
+  - "I've seen online programs that are cheaper. What's the difference?"
+  - "Is there a cheaper way to get started?"
+
+competitor_search_terms: ["testosterone clinic", "hormone replacement therapy", "medical weight loss"]
+
+target_patients:
+  segments:
+    - { service: trt, description: "Men 35-64", sex: male, age_min: 35, age_max: 64 }
+    - { service: menopause_hormone_therapy, description: "Women 40-60", sex: female, age_min: 40, age_max: 60 }
+    - { service: medical_weight_loss, description: "Adults 30-64", sex: any, age_min: 30, age_max: 64 }
+
+supply_data:
+  note: "Industry counts don't separate these clinics well. Rely on Google results."
+  naics: []
+  nppes: []
+
+reply_checker_terms: ["testosterone", "trt", "t levels", "hormone", "hormones", "hrt", "bhrt", "estrogen", "progesterone", "pellet", "pellets", "menopause", "perimenopause", "semaglutide", "tirzepatide", "ozempic", "wegovy", "mounjaro", "zepbound", "glp-1", "weight", "pounds", "lbs", "bmi", "labs", "bloodwork", "injection", "injections", "dose", "dosage", "prescription"]
+
+copy_watch_outs:
+  - "Compounded GLP-1s: never 'FDA-approved', 'generic Ozempic', or 'same as' a brand-name drug."
+  - "No promised weight loss (e.g., 'lose 30 lbs in 3 months') unless it's substantiated and typical."
+  - "No unsupported testosterone benefit claims ('anti-aging', 'fountain of youth')."
+  - "Meta ads can't imply the reader's health condition ('Struggling with low T?')."
+  - "Testosterone is a controlled substance; prescribing and telehealth rules apply."
+
+fix_it_notes:
+  - "Keep voicemails and texts generic: 'your consultation request', never the treatment."
+  - "Explain up front what's included (labs, visits, medication) and what's extra."
+  - "Offer telehealth for the first visit if you can. It removes a big barrier."
+  - "Price shoppers compare you with online programs. Explain what in-person care adds."
+
+attorney_questions:
+  - "What are the federal and state rules for prescribing testosterone, including by telehealth?"
+  - "What can we legally say about compounded GLP-1 medications, and where must they come from?"
+  - "Does our state have specific rules for weight-loss clinics or hormone clinics?"
+
+market_notes:                   # TODO(owner): your insider rules of thumb. Leave blank rather than guess.
+  rules_of_thumb: []
+  prompts_for_owner:
+    - "How many target residents does one clinic need to do well?"
+    - "How much do online/telehealth competitors change the math in a local market?"
+    - "Which services should a new clinic lead with?"
